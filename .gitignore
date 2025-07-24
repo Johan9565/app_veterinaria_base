@@ -1,0 +1,15 @@
+/dev.ps1
+/dev.sh
+/DEVELOPMENT.md
+/restart-backend.ps1
+/seed-permissions.ps1
+/seed-veterinary-permissions.ps1
+/test-frontend.ps1
+/test-permissions-simple.ps1
+/test-system.ps1
+/test-token.ps1
+/test-user-creation.ps1
+/test-users-management.ps1
+/test-users-quick.ps1
+/test-veterinaries.ps1
+/VETERINARIES_API.md

@@ -1,0 +1,48 @@
+version: '3.8'
+services:
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=veterinaria
+
+  backend:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongo
+    volumes:
+      # Volumen para el código fuente - cambios automáticos
+      - ./backend:/app
+      # Excluir node_modules del volumen para usar el del contenedor
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongo:27017/veterinaria
+      - JWT_SECRET=your-secret-key-dev
+      - FRONTEND_URL=http://localhost:3000
+    command: npm run dev
+
+  frontend:
+    build: ./frontend-web
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      # Volumen para el código fuente - cambios automáticos
+      - ./frontend-web:/app
+      # Excluir node_modules del volumen para usar el del contenedor
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+      - REACT_APP_API_URL=http://localhost:5000/api
+    command: npm run dev
+
+volumes:
+  mongo_data:
