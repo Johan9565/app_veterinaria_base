@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { usePermissions } from './ProtectedRoute';
-import { LogOut, User, Settings, Bell, Users, Shield, Home } from 'lucide-react';
+import { LogOut, User, Settings, Bell, Users, Shield, Home, FileText } from 'lucide-react';
 import Button from './ui/Button';
 
 const Navbar = () => {
@@ -72,6 +72,18 @@ const Navbar = () => {
                   <div className="flex items-center space-x-2">
                     <Shield size={16} />
                     <span>Permisos</span>
+                  </div>
+                </Link>
+              )}
+
+              {(user?.role === 'admin' || hasPermission('logs.view')) && (
+                <Link
+                  to="/admin/logs"
+                  className={`px-3 py-2 rounded-md text-sm font-medium border-b-2 transition-colors ${getActiveClass('/admin/logs')}`}
+                >
+                  <div className="flex items-center space-x-2">
+                    <FileText size={16} />
+                    <span>Logs</span>
                   </div>
                 </Link>
               )}

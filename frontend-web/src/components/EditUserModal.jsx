@@ -26,8 +26,7 @@ const EditUserModal = ({ isOpen, onClose, onSave, user }) => {
         role: user.role || 'cliente',
         isActive: user.isActive !== undefined ? user.isActive : true
       };
-      console.log('EditUserModal - Usuario recibido:', user);
-      console.log('EditUserModal - FormData establecido:', newFormData);
+      
       setFormData(newFormData);
       setErrors({});
       

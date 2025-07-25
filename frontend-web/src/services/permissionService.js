@@ -13,13 +13,7 @@ const api = axios.create({
 // Interceptor para agregar el token de autorización
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('veterinaria_token');
-  console.log('🔑 Request Interceptor:', {
-    url: config.url,
-    method: config.method,
-    hasToken: !!token,
-    tokenPreview: token ? token.substring(0, 20) + '...' : 'none'
-  });
-  
+ 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -48,7 +42,7 @@ export const permissionService = {
   // Obtener todos los permisos
   getAllPermissions: async () => {
     const response = await api.get('/permissions');
-    return response.data; // El backend devuelve { permissions } directamente
+    return response.data; // El backend devuelve { permissions, total } directamente
   },
 
   // Obtener permisos por categoría
@@ -162,6 +156,12 @@ export const authService = {
   // Verificar token
   verifyToken: async () => {
     const response = await api.get('/auth/verify');
+    return response.data;
+  },
+
+  // Logout
+  logout: async () => {
+    const response = await api.post('/auth/logout');
     return response.data;
   }
 };

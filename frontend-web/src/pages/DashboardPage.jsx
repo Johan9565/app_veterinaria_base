@@ -76,7 +76,7 @@ const DashboardPage = () => {
                       </div>
                     </Link>
               )}
-                    {}
+                    {(user?.role === 'admin' || user?.permissions?.includes('permissions.view')) && (
                     <Link
                       to="/admin/permissions"
                       className="bg-white p-4 rounded-lg shadow-sm border hover:shadow-md transition-shadow"
@@ -91,6 +91,7 @@ const DashboardPage = () => {
                         </div>
                       </div>
                     </Link>
+                    )}
                   </div>
                 </div>
               
@@ -107,4 +108,4 @@ const DashboardPage = () => {
   );
 };
 
-export de
+export default DashboardPage; 

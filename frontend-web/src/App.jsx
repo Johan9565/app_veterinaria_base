@@ -6,7 +6,9 @@ import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import UsersManagementPage from './pages/admin/UsersManagementPage';
-import PermissionsPage from './pages/PermissionsPage';
+import PermissionsPage from './pages/admin/PermissionsPage';
+import LogsPage from './pages/admin/LogsPage';
+import LogStatsPage from './pages/admin/LogStatsPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 
 function App() {
@@ -47,10 +49,26 @@ function App() {
                 </ProtectedRoute>
               } 
             />
+            <Route 
+              path="/admin/logs" 
+              element={
+                <ProtectedRoute requiredPermissions={['logs.view']}>
+                  <LogsPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/logs/stats" 
+              element={
+                <ProtectedRoute requiredPermissions={['logs.view']}>
+                  <LogStatsPage />
+                </ProtectedRoute>
+              } 
+            />
             
             {/* Redirección por defecto */}
-            <Route path="/" element={<Navigate to="/login" replace />} />
-            <Route path="*" element={<Navigate to="/login" replace />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </div>
       </Router>

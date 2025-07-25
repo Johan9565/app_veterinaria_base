@@ -10,8 +10,20 @@ export const ProtectedRoute = ({
   requireAllPermissions = false,
   fallback = null 
 }) => {
-  const { user, isAuthenticated, hasPermission, hasAnyPermission, hasAllPermissions, hasRole, hasAnyRole } = useAuth();
+  const { user, isAuthenticated, hasPermission, hasAnyPermission, hasAllPermissions, hasRole, hasAnyRole, loading } = useAuth();
   const location = useLocation();
+
+  // Mostrar loading mientras se verifica la autenticación
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Verificando autenticación...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Si no está autenticado, redirigir al login
   if (!isAuthenticated) {

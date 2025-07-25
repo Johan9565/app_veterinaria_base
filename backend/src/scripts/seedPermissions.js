@@ -148,6 +148,32 @@ async function createInitialPermissions() {
         description: 'Editar configuración del sistema',
         category: 'settings',
         action: 'edit'
+      },
+
+      // Permisos de logs del sistema
+      {
+        name: 'logs.view',
+        description: 'Ver logs del sistema',
+        category: 'permissions',
+        action: 'view'
+      },
+      {
+        name: 'logs.export',
+        description: 'Exportar logs del sistema',
+        category: 'permissions',
+        action: 'assign'
+      },
+      {
+        name: 'logs.create',
+        description: 'Crear logs manuales',
+        category: 'permissions',
+        action: 'assign'
+      },
+      {
+        name: 'logs.manage',
+        description: 'Gestionar logs del sistema',
+        category: 'permissions',
+        action: 'assign'
       }
     ];
 

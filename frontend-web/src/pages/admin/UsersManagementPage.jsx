@@ -702,7 +702,7 @@ const UsersManagementPage = () => {
         isOpen={showPermissionsModal}
         onClose={() => setShowPermissionsModal(false)}
         onSave={(permissions) => {
-          console.log('Permisos actualizados:', permissions);
+        
           // Opcional: actualizar la lista de usuarios
           loadUsers();
         }}

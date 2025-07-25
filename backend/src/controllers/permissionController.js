@@ -1,5 +1,6 @@
 const Permission = require('../models/Permission');
 const User = require('../models/User');
+const { logCRUDActivity } = require('../middleware/logging');
 
 // Obtener todos los permisos activos
 const getAllPermissions = async (req, res) => {
@@ -18,6 +19,7 @@ const getAllPermissions = async (req, res) => {
     res.json(response);
   } catch (error) {
     console.error('❌ getAllPermissions - Error:', error);
+    
     res.status(500).json({
       success: false,
       message: 'Error obteniendo permisos',
@@ -33,11 +35,20 @@ const getPermissionsByCategory = async (req, res) => {
     const permissions = await Permission.getByCategory(category);
     
     if (permissions.length === 0) {
+      // Log de categoría no encontrada
+      await logCRUDActivity('get_permissions_by_category', 'permission', req.user, req, {
+        id: category,
+        category: category,
+        reason: 'category_not_found'
+      });
+      
       return res.status(404).json({
         success: false,
         message: 'Categoría de permisos no encontrada'
       });
     }
+    
+
     
     res.json({
       success: true,
@@ -176,6 +187,13 @@ const assignPermissionsToUser = async (req, res) => {
     // Validar que el usuario existe
     const user = await User.findById(userId);
     if (!user) {
+      // Log de usuario no encontrado
+      await logCRUDActivity('assign_permissions_to_user', 'permission', req.user, req, {
+        id: userId,
+        userId: userId,
+        reason: 'user_not_found'
+      });
+      
       return res.status(404).json({
         success: false,
         message: 'Usuario no encontrado'
@@ -192,6 +210,14 @@ const assignPermissionsToUser = async (req, res) => {
     }
     
     if (invalidPermissions.length > 0) {
+      // Log de permisos inválidos
+      await logCRUDActivity('assign_permissions_to_user', 'permission', req.user, req, {
+        id: userId,
+        userId: userId,
+        reason: 'invalid_permissions',
+        invalidPermissions: invalidPermissions
+      });
+      
       return res.status(400).json({
         success: false,
         message: 'Permisos inválidos encontrados',
@@ -199,9 +225,24 @@ const assignPermissionsToUser = async (req, res) => {
       });
     }
     
+    // Guardar permisos anteriores para el log
+    const previousPermissions = [...user.permissions];
+    
     // Actualizar permisos del usuario
     user.permissions = permissions;
     await user.save();
+    
+    // Log de asignación exitosa
+    await logCRUDActivity('assign_permissions_to_user', 'permission', req.user, req, {
+      id: userId,
+      userId: userId,
+      userEmail: user.email,
+      userRole: user.role,
+      previousPermissions: previousPermissions,
+      newPermissions: permissions,
+      permissionsAdded: permissions.filter(p => !previousPermissions.includes(p)),
+      permissionsRemoved: previousPermissions.filter(p => !permissions.includes(p))
+    },'warning');
     
     res.json({
       message: 'Permisos asignados exitosamente',
@@ -209,6 +250,13 @@ const assignPermissionsToUser = async (req, res) => {
       permissions: user.permissions
     });
   } catch (error) {
+    // Log de error
+    await logCRUDActivity('assign_permissions_to_user', 'permission', req.user, req, {
+      id: req.params.userId,
+      userId: req.params.userId,
+      error: error.message
+    });
+    
     res.status(500).json({
       success: false,
       message: 'Error asignando permisos',
@@ -225,11 +273,21 @@ const resetUserPermissions = async (req, res) => {
     // Validar que el usuario existe
     const user = await User.findById(userId);
     if (!user) {
+      // Log de usuario no encontrado
+      await logCRUDActivity('reset_user_permissions', 'permission', req.user, req, {
+        id: userId,
+        userId: userId,
+        reason: 'user_not_found'
+      });
+      
       return res.status(404).json({
         success: false,
         message: 'Usuario no encontrado'
       });
     }
+    
+    // Guardar permisos anteriores para el log
+    const previousPermissions = [...user.permissions];
     
     // Obtener permisos por defecto del rol
     const defaultPermissions = await User.getDefaultPermissions(user.role);
@@ -237,6 +295,18 @@ const resetUserPermissions = async (req, res) => {
     // Actualizar permisos del usuario
     user.permissions = defaultPermissions;
     await user.save();
+    
+    // Log de reseteo exitoso
+    await logCRUDActivity('reset_user_permissions', 'permission', req.user, req, {
+      id: userId,
+      userId: userId,
+      userEmail: user.email,
+      userRole: user.role,
+      previousPermissions: previousPermissions,
+      newPermissions: defaultPermissions,
+      permissionsRemoved: previousPermissions.filter(p => !defaultPermissions.includes(p)),
+      permissionsAdded: defaultPermissions.filter(p => !previousPermissions.includes(p))
+    },'warning');
     
     res.json({
       success: true,
@@ -247,6 +317,13 @@ const resetUserPermissions = async (req, res) => {
       }
     });
   } catch (error) {
+    // Log de error
+    await logCRUDActivity('reset_user_permissions', 'permission', req.user, req, {
+      id: req.params.userId,
+      userId: req.params.userId,
+      error: error.message
+    });
+    
     res.status(500).json({
       success: false,
       message: 'Error reseteando permisos',

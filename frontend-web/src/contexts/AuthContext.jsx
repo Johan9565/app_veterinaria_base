@@ -18,18 +18,27 @@ export const AuthProvider = ({ children }) => {
 
   // Verificar si hay un usuario guardado en localStorage al cargar
   useEffect(() => {
-    const savedUser = localStorage.getItem('veterinaria_user');
-    const token = localStorage.getItem('veterinaria_token');
-    
-    if (savedUser && token) {
-      try {
-        setUser(JSON.parse(savedUser));
-      } catch (error) {
-        localStorage.removeItem('veterinaria_user');
-        localStorage.removeItem('veterinaria_token');
+    const verifyAuth = async () => {
+      const savedUser = localStorage.getItem('veterinaria_user');
+      const token = localStorage.getItem('veterinaria_token');
+      
+      if (savedUser && token) {
+        try {
+          // Verificar si el token es válido con el backend
+          const response = await authService.verifyToken();
+          setUser(response.user);
+          localStorage.setItem('veterinaria_user', JSON.stringify(response.user));
+        } catch (error) {
+          console.log('Token inválido o expirado, limpiando datos...');
+          localStorage.removeItem('veterinaria_user');
+          localStorage.removeItem('veterinaria_token');
+          setUser(null);
+        }
       }
-    }
-    setLoading(false);
+      setLoading(false);
+    };
+
+    verifyAuth();
   }, []);
 
   // Función de login
@@ -75,11 +84,20 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Función de logout
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('veterinaria_user');
-    localStorage.removeItem('veterinaria_token');
-    setError(null);
+  const logout = async () => {
+    try {
+      // Llamar al backend para registrar el logout
+      await authService.logout();
+    } catch (error) {
+      console.log('Error al registrar logout en el backend:', error);
+      // Continuar con el logout local aunque falle el backend
+    } finally {
+      // Limpiar datos locales
+      setUser(null);
+      localStorage.removeItem('veterinaria_user');
+      localStorage.removeItem('veterinaria_token');
+      setError(null);
+    }
   };
 
   // Función para actualizar perfil

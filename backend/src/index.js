@@ -9,9 +9,13 @@ const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const permissionRoutes = require('./routes/permissions');
 const veterinaryRoutes = require('./routes/veterinaries');
+const logRoutes = require('./routes/logs');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Configurar trust proxy para obtener IPs correctas
+app.set('trust proxy', true);
 
 // Configuración de rate limiting - más permisivo para desarrollo
 const limiter = rateLimit({
@@ -45,6 +49,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/permissions', permissionRoutes);
 app.use('/api/veterinaries', veterinaryRoutes);
+app.use('/api/logs', logRoutes);
 
 // Ruta de prueba
 app.get('/api/health', (req, res) => {

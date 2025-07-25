@@ -8,13 +8,7 @@ const authenticate = async (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
-    console.log('🔐 Auth Debug:', {
-      hasAuthHeader: !!authHeader,
-      hasToken: !!token,
-      path: req.path,
-      method: req.method
-    });
-
+    
     if (!token) {
       return res.status(401).json({ 
         message: 'Token de acceso requerido' 
@@ -35,13 +29,6 @@ const authenticate = async (req, res, next) => {
         message: 'Usuario desactivado' 
       });
     }
-
-    console.log('✅ Usuario autenticado:', {
-      userId: user._id,
-      email: user.email,
-      role: user.role,
-      permissions: user.permissions
-    });
 
     req.user = user;
     next();
