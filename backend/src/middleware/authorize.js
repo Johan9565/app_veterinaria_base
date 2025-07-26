@@ -13,11 +13,6 @@ const authorize = (requiredPermissions) => {
         ? requiredPermissions 
         : [requiredPermissions];
 
-      // Los admins tienen acceso total
-      if (req.user && req.user.role === 'admin') {
-        return next();
-      }
-
       // Verificar que el usuario existe
       if (!req.user) {
         return res.status(401).json({
@@ -126,11 +121,6 @@ const authorizeRole = (requiredRoles) => {
 const authorizeAll = (requiredPermissions) => {
   return async (req, res, next) => {
     try {
-      // Los admins tienen acceso total
-      if (req.user && req.user.role === 'admin') {
-        return next();
-      }
-
       // Verificar que el usuario existe
       if (!req.user) {
         return res.status(401).json({
@@ -195,11 +185,6 @@ const authorizeAll = (requiredPermissions) => {
 const authorizeOwner = (getResourceUserId) => {
   return (req, res, next) => {
     try {
-      // Los admins tienen acceso total
-      if (req.user && req.user.role === 'admin') {
-        return next();
-      }
-
       // Verificar que el usuario existe
       if (!req.user) {
         return res.status(401).json({

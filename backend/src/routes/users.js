@@ -4,7 +4,7 @@ const {
   authenticateToken, 
   requirePermission, 
   requireRole,
-  requireOwnershipOrAdmin 
+  requireOwnershipOrPermission 
 } = require('../middleware/auth');
 const userController = require('../controllers/userController');
 
@@ -66,10 +66,10 @@ router.get('/', authenticateToken, requirePermission('users.view'), userControll
 router.post('/', authenticateToken, requirePermission('users.create'), createUserValidation, userController.createUser);
 
 // GET /api/users/:id - Obtener usuario específico
-router.get('/:id', authenticateToken, requireOwnershipOrAdmin('id'), userController.getUserById);
+router.get('/:id', authenticateToken, requireOwnershipOrPermission('id', 'users.view'), userController.getUserById);
 
 // PUT /api/users/:id - Actualizar usuario
-router.put('/:id', authenticateToken, requireOwnershipOrAdmin('id'), updateUserValidation, userController.updateUser);
+router.put('/:id', authenticateToken, requireOwnershipOrPermission('id', 'users.edit'), updateUserValidation, userController.updateUser);
 
 // DELETE /api/users/:id - Eliminar usuario (solo admin)
 router.delete('/:id', authenticateToken, requirePermission('users.delete'), userController.deleteUser);

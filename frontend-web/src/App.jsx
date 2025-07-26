@@ -5,6 +5,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
+import VeterinariesPage from './pages/VeterinariesPage';
 import UsersManagementPage from './pages/admin/UsersManagementPage';
 import PermissionsPage from './pages/admin/PermissionsPage';
 import LogsPage from './pages/admin/LogsPage';
@@ -28,6 +29,16 @@ function App() {
               element={
                 <ProtectedRoute>
                   <DashboardPage />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Rutas de veterinarias */}
+            <Route 
+              path="/veterinaries" 
+              element={
+                <ProtectedRoute requiredPermissions={['veterinaries.mine.view']}>
+                  <VeterinariesPage />
                 </ProtectedRoute>
               } 
             />

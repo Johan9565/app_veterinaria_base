@@ -338,17 +338,53 @@ const getUserVeterinaries = async (req, res) => {
   try {
     const userId = req.params.userId || req.user.id;
     console.log('🔍 getUserVeterinaries - Buscando veterinarias del usuario:', userId);
+
+    let veterinaries;
+    const permissions = req.user.permissions || [];
+
+    // Buscar veterinarias donde el usuario es propietario O está en el staff
+    if (permissions.includes('veterinaries.view')) {
+      veterinaries = await Veterinary.find({})
+        .populate('staff.user', 'name email role')
+        .populate('owner', 'name email role')
+        .sort({ createdAt: -1 });
+    } else {
+      veterinaries = await Veterinary.find({
+        $or: [
+          { owner: userId },
+          { 'staff.user': userId }
+        ]
+      })
+        .populate('staff.user', 'name email role')
+        .populate('owner', 'name email role')
+        .sort({ createdAt: -1 });
+    }
     
-    const veterinaries = await Veterinary.find({ owner: userId })
-      .populate('staff.user', 'name email role')
-      .sort({ createdAt: -1 });
     
     console.log('🔍 getUserVeterinaries - Veterinarias encontradas:', veterinaries.length);
+    
+    // Agregar información del rol del usuario en cada veterinaria
+    const veterinariesWithUserRole = veterinaries.map(veterinary => {
+      const veterinaryObj = veterinary.toObject();
+      
+      // Verificar si es propietario
+      if (veterinary.owner && veterinary.owner._id.toString() === userId) {
+        veterinaryObj.userRole = 'owner';
+      } else {
+        // Buscar en el staff
+        const staffMember = veterinary.staff.find(member => 
+          member.user && member.user._id.toString() === userId
+        );
+        veterinaryObj.userRole = staffMember ? staffMember.role : null;
+      }
+      
+      return veterinaryObj;
+    });
     
     res.json({
       success: true,
       data: {
-        veterinaries,
+        veterinaries: veterinariesWithUserRole,
         total: veterinaries.length
       }
     });

@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const Permission = require('./Permission');
+const Role = require('./Role');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -30,8 +31,9 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['cliente', 'veterinario', 'admin'],
-    default: 'cliente'
+    required: [true, 'El rol es requerido'],
+    trim: true,
+    lowercase: true
   },
   permissions: [{
     type: String,
@@ -86,9 +88,6 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
 
 // Método para verificar permisos
 userSchema.methods.hasPermission = async function(permission) {
-  // Los admins tienen todos los permisos
-  if (this.role === 'admin') return true;
-  
   // Verificar si el permiso existe en la base de datos
   const permissionExists = await Permission.isValidPermission(permission);
   if (!permissionExists) return false;
@@ -99,8 +98,6 @@ userSchema.methods.hasPermission = async function(permission) {
 
 // Método para verificar múltiples permisos
 userSchema.methods.hasAnyPermission = async function(permissions) {
-  if (this.role === 'admin') return true;
-  
   // Verificar que todos los permisos existen en la base de datos
   for (const permission of permissions) {
     const isValid = await Permission.isValidPermission(permission);
@@ -112,8 +109,6 @@ userSchema.methods.hasAnyPermission = async function(permissions) {
 
 // Método para verificar todos los permisos
 userSchema.methods.hasAllPermissions = async function(permissions) {
-  if (this.role === 'admin') return true;
-  
   // Verificar que todos los permisos existen en la base de datos
   for (const permission of permissions) {
     const isValid = await Permission.isValidPermission(permission);
@@ -133,19 +128,13 @@ userSchema.methods.toPublicJSON = function() {
 
 // Método estático para obtener permisos por rol
 userSchema.statics.getDefaultPermissions = async function(role) {
-  const rolePermissions = {
-    cliente: ['pets.view', 'appointments.view', 'appointments.create'],
-    veterinario: ['pets.view', 'pets.edit', 'appointments.view', 'appointments.create', 'appointments.edit', 'reports.view', 'reports.create'],
-    admin: [] // Los admins tendrán todos los permisos disponibles
-  };
-  
-  if (role === 'admin') {
-    // Para admin, obtener todos los permisos activos de la base de datos
-    const allPermissions = await Permission.getAllPermissionNames();
-    return allPermissions;
+  // Obtener el rol de la base de datos
+  const roleDoc = await Role.getByName(role);
+  if (!roleDoc) {
+    throw new Error(`Rol '${role}' no encontrado`);
   }
   
-  return rolePermissions[role] || [];
+  return roleDoc.permissions;
 };
 
 module.exports = mongoose.model('User', userSchema); 

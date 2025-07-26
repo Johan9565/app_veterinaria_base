@@ -170,10 +170,12 @@ const updateUser = async (req, res) => {
       updateData.email = email;
     }
 
-    // Solo admins pueden cambiar roles y permisos
-    if (req.user.role === 'admin') {
-      if (role) updateData.role = role;
-      if (permissions) updateData.permissions = permissions;
+    // Solo usuarios con permisos específicos pueden cambiar roles y permisos
+    if (role && await req.user.hasPermission('users.edit')) {
+      updateData.role = role;
+    }
+    if (permissions && await req.user.hasPermission('permissions.assign')) {
+      updateData.permissions = permissions;
     }
 
     const user = await User.findByIdAndUpdate(

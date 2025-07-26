@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
-import { Users, Shield } from 'lucide-react';
+import { Users, Shield, Building2 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 
 const DashboardPage = () => {
@@ -56,10 +56,10 @@ const DashboardPage = () => {
               </div>
 
               {/* Enlaces de administración para admins */}
-             
+              {(user?.role === 'admin' || user?.permissions?.some(p => ['users.view', 'permissions.view', 'veterinaries.mine.view'].includes(p))) && (
                 <div className="mt-8">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Panel de Administración</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {(user?.role === 'admin' || user?.permissions?.includes('users.view')) && (
                     <Link
                       to="/admin/users"
@@ -76,6 +76,7 @@ const DashboardPage = () => {
                       </div>
                     </Link>
               )}
+                    
                     {(user?.role === 'admin' || user?.permissions?.includes('permissions.view')) && (
                     <Link
                       to="/admin/permissions"
@@ -92,8 +93,26 @@ const DashboardPage = () => {
                       </div>
                     </Link>
                     )}
+
+                    {(user?.role === 'admin' || user?.permissions?.includes('veterinaries.mine.view')) && (
+                      <Link
+                        to="/veterinaries"
+                        className="bg-white p-4 rounded-lg shadow-sm border hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="h-10 w-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                            <Building2 size={20} className="text-orange-600" />
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-gray-900">Mis Veterinarias</h4>
+                            <p className="text-sm text-gray-500">Gestiona tus veterinarias</p>
+                          </div>
+                        </div>
+                      </Link>
+                    )}
                   </div>
                 </div>
+              )}
               
               <div className="mt-8 p-4 bg-blue-50 rounded-lg">
                 <p className="text-sm text-blue-800">

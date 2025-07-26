@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { usePermissions } from './ProtectedRoute';
-import { LogOut, User, Settings, Bell, Users, Shield, Home, FileText } from 'lucide-react';
+import { LogOut, User, Settings, Bell, Users, Shield, Home, FileText, Building2 } from 'lucide-react';
 import Button from './ui/Button';
 
 const Navbar = () => {
@@ -50,6 +50,19 @@ const Navbar = () => {
                   <span>Dashboard</span>
                 </div>
               </Link>
+
+              {/* Enlace a veterinarias */}
+              {(user?.role === 'admin' || hasPermission('veterinaries.mine.view')) && (
+                <Link
+                  to="/veterinaries"
+                  className={`px-3 py-2 rounded-md text-sm font-medium border-b-2 transition-colors ${getActiveClass('/veterinaries')}`}
+                >
+                  <div className="flex items-center space-x-2">
+                    <Building2 size={16} />
+                    <span>Mis Veterinarias</span>
+                  </div>
+                </Link>
+              )}
 
               {/* Enlaces de administración */}
               {(user?.role === 'admin' || hasPermission('users.view')) && (

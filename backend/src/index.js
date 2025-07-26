@@ -8,8 +8,10 @@ require('dotenv').config();
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const permissionRoutes = require('./routes/permissions');
+const roleRoutes = require('./routes/roles');
 const veterinaryRoutes = require('./routes/veterinaries');
 const logRoutes = require('./routes/logs');
+const uploadRoutes = require('./routes/uploads');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -48,8 +50,10 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/veterinar
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/permissions', permissionRoutes);
+app.use('/api/roles', roleRoutes);
 app.use('/api/veterinaries', veterinaryRoutes);
 app.use('/api/logs', logRoutes);
+app.use('/api/uploads', uploadRoutes);
 
 // Ruta de prueba
 app.get('/api/health', (req, res) => {

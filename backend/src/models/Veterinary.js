@@ -40,6 +40,22 @@ const veterinarySchema = new mongoose.Schema({
     trim: true,
     match: [/^https?:\/\/.+/, 'URL inválida']
   },
+  logo: {
+    url: {
+      type: String,
+      trim: true
+    },
+    publicId: {
+      type: String,
+      trim: true
+    },
+    width: {
+      type: Number
+    },
+    height: {
+      type: Number
+    }
+  },
   services: [{
     type: String,
     trim: true,

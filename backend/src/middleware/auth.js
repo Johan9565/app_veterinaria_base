@@ -59,11 +59,6 @@ const requirePermission = (permission) => {
       });
     }
 
-    // Los admins tienen todos los permisos
-    if (req.user.role === 'admin') {
-      return next();
-    }
-
     // Verificar que el permiso existe en la base de datos
     const isValid = await Permission.isValidPermission(permission);
     if (!isValid) {
@@ -141,9 +136,9 @@ const requireRole = (roles) => {
   };
 };
 
-// Middleware para verificar si es el propio usuario o admin
-const requireOwnershipOrAdmin = (paramName = 'userId') => {
-  return (req, res, next) => {
+// Middleware para verificar si es el propio usuario o tiene permisos de administración
+const requireOwnershipOrPermission = (paramName = 'userId', permission = 'users.view') => {
+  return async (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({ 
         message: 'Autenticación requerida' 
@@ -152,7 +147,14 @@ const requireOwnershipOrAdmin = (paramName = 'userId') => {
 
     const targetUserId = req.params[paramName] || req.body[paramName];
     
-    if (req.user.role === 'admin' || req.user._id.toString() === targetUserId) {
+    // Si es el propio usuario, permitir acceso
+    if (req.user._id.toString() === targetUserId) {
+      return next();
+    }
+    
+    // Si no es el propio usuario, verificar permisos
+    const hasPermission = await req.user.hasPermission(permission);
+    if (hasPermission) {
       next();
     } else {
       return res.status(403).json({ 
@@ -169,5 +171,5 @@ module.exports = {
   requireAnyPermission,
   requireAllPermissions,
   requireRole,
-  requireOwnershipOrAdmin
+  requireOwnershipOrPermission
 }; 

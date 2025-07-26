@@ -25,6 +25,9 @@ services:
       - MONGODB_URI=mongodb://mongo:27017/veterinaria
       - JWT_SECRET=your-secret-key-dev
       - FRONTEND_URL=http://localhost:3000
+      - CLOUDINARY_CLOUD_NAME=dmnsaeyvd
+      - CLOUDINARY_API_KEY=162999588435394
+      - CLOUDINARY_API_SECRET=-8w_4kDk5ZcgnTv3QRasiJUZA_E
     command: npm run dev
 
   frontend:
