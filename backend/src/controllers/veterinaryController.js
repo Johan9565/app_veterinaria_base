@@ -1,5 +1,6 @@
 const Veterinary = require('../models/Veterinary');
 const User = require('../models/User');
+const { logCRUDActivity } = require('../middleware/logging');
 
 // Obtener todas las veterinarias (con paginación y filtros)
 const getAllVeterinaries = async (req, res) => {
@@ -134,6 +135,7 @@ const createVeterinary = async (req, res) => {
       message: 'Veterinaria creada exitosamente',
       data: { veterinary }
     });
+    logCRUDActivity('create', 'veterinary', req.user, req, { id: veterinary._id, name: veterinary.name });
   } catch (error) {
     console.error('❌ createVeterinary - Error:', error);
     
@@ -203,6 +205,7 @@ const updateVeterinary = async (req, res) => {
       message: 'Veterinaria actualizada exitosamente',
       data: { veterinary: updatedVeterinary }
     });
+    logCRUDActivity('update', 'veterinary', req.user, req, { id: updatedVeterinary._id, name: updatedVeterinary.name, data: updateData });
   } catch (error) {
     console.error('❌ updateVeterinary - Error:', error);
     
@@ -255,6 +258,7 @@ const deleteVeterinary = async (req, res) => {
       success: true,
       message: 'Veterinaria eliminada exitosamente'
     });
+    logCRUDActivity('delete', 'veterinary', req.user, req, { id: veterinary._id, name: veterinary.name });
   } catch (error) {
     console.error('❌ deleteVeterinary - Error:', error);
     res.status(500).json({
@@ -449,6 +453,7 @@ const addStaffMember = async (req, res) => {
       message: 'Personal agregado exitosamente',
       data: { veterinary }
     });
+    logCRUDActivity('addStaffMember', 'veterinary', req.user, req, { id: veterinary._id, name: veterinary.name });
   } catch (error) {
     console.error('❌ addStaffMember - Error:', error);
     res.status(500).json({
@@ -493,6 +498,7 @@ const removeStaffMember = async (req, res) => {
       message: 'Personal removido exitosamente',
       data: { veterinary }
     });
+    logCRUDActivity('removeStaffMember', 'veterinary', req.user, req, { id: veterinary._id, name: veterinary.name });
   } catch (error) {
     console.error('❌ removeStaffMember - Error:', error);
     res.status(500).json({

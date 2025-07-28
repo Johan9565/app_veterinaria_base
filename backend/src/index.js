@@ -12,6 +12,7 @@ const roleRoutes = require('./routes/roles');
 const veterinaryRoutes = require('./routes/veterinaries');
 const logRoutes = require('./routes/logs');
 const uploadRoutes = require('./routes/uploads');
+const locationRoutes = require('./routes/locations');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -54,6 +55,7 @@ app.use('/api/roles', roleRoutes);
 app.use('/api/veterinaries', veterinaryRoutes);
 app.use('/api/logs', logRoutes);
 app.use('/api/uploads', uploadRoutes);
+app.use('/api/locations', locationRoutes);
 
 // Ruta de prueba
 app.get('/api/health', (req, res) => {

@@ -124,7 +124,7 @@ const createRole = async (req, res) => {
     await role.save();
     
     // Log de la actividad
-    logCRUDActivity(req, 'CREATE', 'Role', role._id, `Rol creado: ${displayName}`);
+    logCRUDActivity('create', 'role', req.user, req, { id: role._id, name: role.displayName });
     
     res.status(201).json({
       success: true,
@@ -186,7 +186,7 @@ const updateRole = async (req, res) => {
     await role.save();
     
     // Log de la actividad
-    logCRUDActivity(req, 'UPDATE', 'Role', role._id, `Rol actualizado: ${role.displayName}`, oldData);
+    logCRUDActivity('update', 'role', req.user, req, { id: role._id, name: role.displayName, oldData });
     
     res.json({
       success: true,
@@ -235,7 +235,7 @@ const deleteRole = async (req, res) => {
     await Role.findByIdAndDelete(req.params.id);
     
     // Log de la actividad
-    logCRUDActivity(req, 'DELETE', 'Role', role._id, `Rol eliminado: ${role.displayName}`);
+    logCRUDActivity('delete', 'role', req.user, req, { id: role._id, name: role.displayName });
     
     res.json({
       success: true,
@@ -327,7 +327,7 @@ const updateRolePermissions = async (req, res) => {
     await role.save();
     
     // Log de la actividad
-    logCRUDActivity(req, 'UPDATE', 'Role', role._id, `Permisos actualizados para rol: ${role.displayName}`, { oldPermissions });
+    logCRUDActivity('update', 'role', req.user, req, { id: role._id, name: role.displayName, oldPermissions });
     
     res.json({
       success: true,

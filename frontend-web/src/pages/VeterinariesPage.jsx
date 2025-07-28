@@ -410,12 +410,7 @@ const VeterinariesPage = () => {
                      )}
                   </div>
                   
-                  <Button
-                    variant="primary"
-                    size="sm"
-                  >
-                    Ver Detalles
-                  </Button>
+                 
                 </div>
               </div>
             </div>
