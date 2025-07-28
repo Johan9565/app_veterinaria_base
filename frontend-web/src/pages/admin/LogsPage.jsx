@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { logService } from '../../services/logService';
 import { usePermissions } from '../../components/ProtectedRoute';
 import Navbar from '../../components/Navbar';
+import AlertService from '../../services/alertService';
 import { 
   FileText, 
   AlertTriangle, 
@@ -140,14 +141,19 @@ const LogsPage = () => {
   };
 
   const handleCleanLogs = async () => {
-    if (window.confirm('¿Estás seguro de que quieres limpiar los logs antiguos? Esta acción no se puede deshacer.')) {
-      try {
-        await logService.cleanOldLogs(90);
-        loadLogs();
-        loadStats();
-      } catch (error) {
-        console.error('Error limpiando logs:', error);
-      }
+    const confirmed = await AlertService.confirmCleanLogs();
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await logService.cleanOldLogs(90);
+      AlertService.success('Logs limpiados', 'Los logs antiguos han sido eliminados exitosamente');
+      loadLogs();
+      loadStats();
+    } catch (error) {
+      console.error('Error limpiando logs:', error);
+      AlertService.error('Error al limpiar logs', 'No se pudieron limpiar los logs antiguos');
     }
   };
 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Shield, X, Save, RefreshCw } from 'lucide-react';
 import { permissionService } from '../services/permissionService';
+import AlertService from '../services/alertService';
 
 const UserPermissionsModal = ({ user, isOpen, onClose, onSave }) => {
   const [permissions, setPermissions] = useState([]);
@@ -62,17 +63,21 @@ const UserPermissionsModal = ({ user, isOpen, onClose, onSave }) => {
   };
 
   const handleReset = async () => {
-    if (window.confirm('¿Estás seguro de que quieres resetear los permisos del usuario?')) {
-      try {
-        setSaving(true);
-        await permissionService.resetUserPermissions(user._id);
-        await loadUserPermissions();
-        alert('Permisos reseteados exitosamente');
-      } catch (error) {
-        setError('Error reseteando permisos: ' + error.message);
-      } finally {
-        setSaving(false);
-      }
+    const confirmed = await AlertService.confirmResetPermissions();
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setSaving(true);
+      await permissionService.resetUserPermissions(user._id);
+      await loadUserPermissions();
+      AlertService.success('Permisos reseteados', 'Los permisos del usuario han sido reseteados exitosamente');
+    } catch (error) {
+      setError('Error reseteando permisos: ' + error.message);
+      AlertService.error('Error al resetear permisos', 'No se pudieron resetear los permisos del usuario');
+    } finally {
+      setSaving(false);
     }
   };
 

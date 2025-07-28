@@ -160,6 +160,7 @@ const updateVeterinary = async (req, res) => {
     const { id } = req.params;
     const updateData = req.body;
     console.log('🔍 updateVeterinary - Actualizando veterinaria:', id);
+    console.log('🔍 updateVeterinary - Datos de actualización:', updateData);
     
     // Verificar que la veterinaria existe
     const veterinary = await Veterinary.findById(id);
@@ -192,10 +193,10 @@ const updateVeterinary = async (req, res) => {
     const updatedVeterinary = await Veterinary.findByIdAndUpdate(
       id,
       updateData,
-      { new: true, runValidators: true }
+      { new: true, runValidators: false }
     ).populate('owner', 'name email');
     
-    console.log('🔍 updateVeterinary - Veterinaria actualizada:', updatedVeterinary.name);
+   
     
     res.json({
       success: true,
@@ -226,7 +227,7 @@ const updateVeterinary = async (req, res) => {
 const deleteVeterinary = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('🔍 deleteVeterinary - Eliminando veterinaria:', id);
+
     
     const veterinary = await Veterinary.findById(id);
     if (!veterinary) {
@@ -248,7 +249,7 @@ const deleteVeterinary = async (req, res) => {
     veterinary.isActive = false;
     await veterinary.save();
     
-    console.log('🔍 deleteVeterinary - Veterinaria eliminada:', veterinary.name);
+
     
     res.json({
       success: true,
@@ -268,7 +269,7 @@ const deleteVeterinary = async (req, res) => {
 const findNearbyVeterinaries = async (req, res) => {
   try {
     const { lat, lng, distance = 10000 } = req.query;
-    console.log('🔍 findNearbyVeterinaries - Buscando cerca de:', lat, lng);
+
     
     if (!lat || !lng) {
       return res.status(400).json({
@@ -282,8 +283,7 @@ const findNearbyVeterinaries = async (req, res) => {
       .populate('owner', 'name email')
       .limit(20);
     
-    console.log('🔍 findNearbyVeterinaries - Veterinarias encontradas:', veterinaries.length);
-    
+
     res.json({
       success: true,
       data: {
@@ -307,13 +307,13 @@ const findNearbyVeterinaries = async (req, res) => {
 const findVeterinariesByService = async (req, res) => {
   try {
     const { service } = req.params;
-    console.log('🔍 findVeterinariesByService - Buscando servicio:', service);
+   
     
     const veterinaries = await Veterinary.findByService(service)
       .populate('owner', 'name email')
       .sort({ rating: -1 });
     
-    console.log('🔍 findVeterinariesByService - Veterinarias encontradas:', veterinaries.length);
+
     
     res.json({
       success: true,
@@ -337,7 +337,7 @@ const findVeterinariesByService = async (req, res) => {
 const getUserVeterinaries = async (req, res) => {
   try {
     const userId = req.params.userId || req.user.id;
-    console.log('🔍 getUserVeterinaries - Buscando veterinarias del usuario:', userId);
+    
 
     let veterinaries;
     const permissions = req.user.permissions || [];
@@ -360,8 +360,7 @@ const getUserVeterinaries = async (req, res) => {
         .sort({ createdAt: -1 });
     }
     
-    
-    console.log('🔍 getUserVeterinaries - Veterinarias encontradas:', veterinaries.length);
+   
     
     // Agregar información del rol del usuario en cada veterinaria
     const veterinariesWithUserRole = veterinaries.map(veterinary => {
@@ -403,7 +402,7 @@ const addStaffMember = async (req, res) => {
   try {
     const { id } = req.params;
     const { userId, role } = req.body;
-    console.log('🔍 addStaffMember - Agregando personal a veterinaria:', id);
+
     
     const veterinary = await Veterinary.findById(id);
     if (!veterinary) {
@@ -443,8 +442,7 @@ const addStaffMember = async (req, res) => {
     await veterinary.save();
     
     await veterinary.populate('staff.user', 'name email role');
-    
-    console.log('🔍 addStaffMember - Personal agregado exitosamente');
+   
     
     res.json({
       success: true,
@@ -465,7 +463,7 @@ const addStaffMember = async (req, res) => {
 const removeStaffMember = async (req, res) => {
   try {
     const { id, staffId } = req.params;
-    console.log('🔍 removeStaffMember - Removiendo personal:', staffId);
+  
     
     const veterinary = await Veterinary.findById(id);
     if (!veterinary) {
@@ -488,7 +486,7 @@ const removeStaffMember = async (req, res) => {
     
     await veterinary.populate('staff.user', 'name email role');
     
-    console.log('🔍 removeStaffMember - Personal removido exitosamente');
+   
     
     res.json({
       success: true,
@@ -508,7 +506,7 @@ const removeStaffMember = async (req, res) => {
 // Obtener estadísticas de veterinarias
 const getVeterinaryStats = async (req, res) => {
   try {
-    console.log('🔍 getVeterinaryStats - Obteniendo estadísticas...');
+ 
     
     const totalVeterinaries = await Veterinary.countDocuments();
     const activeVeterinaries = await Veterinary.countDocuments({ isActive: true });
@@ -532,7 +530,7 @@ const getVeterinaryStats = async (req, res) => {
       { $limit: 10 }
     ]);
     
-    console.log('🔍 getVeterinaryStats - Estadísticas obtenidas');
+
     
     res.json({
       success: true,

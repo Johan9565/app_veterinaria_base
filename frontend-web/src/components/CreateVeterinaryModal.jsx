@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import Button from './ui/Button';
 import Input from './ui/Input';
+import ErrorModal from './ui/ErrorModal';
 import cloudinaryService from '../services/cloudinaryService';
+import veterinaryService from '../services/veterinaryService';
 
 const CreateVeterinaryModal = ({ onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -40,6 +42,8 @@ const CreateVeterinaryModal = ({ onClose, onSubmit }) => {
   const [loading, setLoading] = useState(false);
   const [logoPreview, setLogoPreview] = useState(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [backendError, setBackendError] = useState(null);
+  const [showErrorModal, setShowErrorModal] = useState(false);
 
   // Servicios disponibles
   const availableServices = [
@@ -130,6 +134,12 @@ const CreateVeterinaryModal = ({ onClose, onSubmit }) => {
       case 'state':
         if (!value.trim()) {
           return 'El estado/provincia es requerido';
+        }
+        break;
+      
+      case 'services':
+        if (!value || value.length === 0) {
+          return 'Debe seleccionar al menos un servicio';
         }
         break;
       
@@ -274,23 +284,21 @@ const CreateVeterinaryModal = ({ onClose, onSubmit }) => {
       };
       reader.readAsDataURL(file);
 
-      // Subir logo al backend
-      const result = await cloudinaryService.uploadVeterinaryLogo(file);
-      
-      // Actualizar el estado con la información de Cloudinary
+      // Guardar el archivo para subirlo después de crear la veterinaria
       setFormData(prev => ({
         ...prev,
         logo: {
-          url: result.url,
-          publicId: result.publicId,
-          width: result.width,
-          height: result.height
+          file: file, // Guardar el archivo temporalmente
+          url: null,
+          publicId: null,
+          width: null,
+          height: null
         }
       }));
 
     } catch (error) {
-      console.error('Error subiendo logo:', error);
-      setErrors(prev => ({ ...prev, logo: error.message || 'Error al subir la imagen. Intente nuevamente.' }));
+      console.error('Error procesando logo:', error);
+      setErrors(prev => ({ ...prev, logo: error.message || 'Error al procesar la imagen. Intente nuevamente.' }));
       // Limpiar preview si hay error
       setLogoPreview(null);
     } finally {
@@ -308,16 +316,7 @@ const CreateVeterinaryModal = ({ onClose, onSubmit }) => {
 
   // Eliminar logo
   const removeLogo = async () => {
-    try {
-      // Si hay un logo subido, eliminarlo de Cloudinary
-      if (formData.logo?.publicId) {
-        await cloudinaryService.deleteImage(formData.logo.publicId);
-      }
-    } catch (error) {
-      console.error('Error eliminando logo de Cloudinary:', error);
-      // Continuar con la eliminación local aunque falle en Cloudinary
-    }
-
+    // No necesitamos eliminar de Cloudinary ya que la imagen no se sube hasta después de crear la veterinaria
     setFormData(prev => ({ ...prev, logo: null }));
     setLogoPreview(null);
     setErrors(prev => ({ ...prev, logo: null }));
@@ -369,6 +368,11 @@ const CreateVeterinaryModal = ({ onClose, onSubmit }) => {
       newErrors.state = 'El estado/provincia es requerido';
     }
 
+    // Validación de servicios
+    if (!formData.services || formData.services.length === 0) {
+      newErrors.services = 'Debe seleccionar al menos un servicio';
+    }
+
     // Validación de la descripción
     if (formData.description && formData.description.trim().length > 500) {
       newErrors.description = 'La descripción no puede exceder 500 caracteres';
@@ -394,10 +398,10 @@ const CreateVeterinaryModal = ({ onClose, onSubmit }) => {
       newErrors.country = 'El país no puede exceder 50 caracteres';
     }
 
-    // Validación de logo
-    if (formData.logo && !formData.logo.url) {
-      newErrors.logo = 'Error en la imagen del logo';
-    }
+    // Validación de logo - ya no es necesaria porque el logo se sube después de crear la veterinaria
+    // if (formData.logo && !formData.logo.url) {
+    //   newErrors.logo = 'Error en la imagen del logo';
+    // }
 
     // Validación de redes sociales
     if (formData.socialMedia.facebook && !/^https?:\/\/.+/.test(formData.socialMedia.facebook.trim())) {
@@ -435,16 +439,92 @@ const CreateVeterinaryModal = ({ onClose, onSubmit }) => {
     }
 
     setLoading(true);
+    setBackendError(null);
 
     try {
-      await onSubmit(formData);
+      // Guardar el archivo temporalmente si existe
+      const logoFile = formData.logo?.file || null;
+      
+      // Crear veterinaria sin logo primero
+      const veterinaryDataWithoutLogo = { ...formData };
+      delete veterinaryDataWithoutLogo.logo;
+      
+      const result = await onSubmit(veterinaryDataWithoutLogo);
+      
+      console.log('Resultado de crear veterinaria:', result);
+      console.log('Logo file:', logoFile);
+      
+      // Si la veterinaria se creó exitosamente y hay un logo, subirlo
+      if (result && result.data?.veterinary && logoFile) {
+        console.log('Procediendo a subir logo...');
+        console.log('ID de la veterinaria:', result.data.veterinary._id);
+        console.log('Datos del logo a actualizar:', {
+          url: 'se subirá a Cloudinary',
+          publicId: 'se generará en Cloudinary',
+          width: 'se obtendrá de Cloudinary',
+          height: 'se obtendrá de Cloudinary'
+        });
+        
+        try {
+          const uploadedLogo = await cloudinaryService.uploadVeterinaryLogo(logoFile);
+          console.log('Logo subido a Cloudinary:', uploadedLogo);
+          
+          // Actualizar la veterinaria con la información del logo
+          const updateData = {
+            logo: {
+              url: uploadedLogo.url,
+              publicId: uploadedLogo.publicId,
+              width: uploadedLogo.width,
+              height: uploadedLogo.height
+            }
+          };
+          
+          console.log('Datos para actualizar veterinaria:', updateData);
+          
+          const updateResult = await veterinaryService.updateVeterinary(result.data.veterinary._id, updateData);
+          console.log('Veterinaria actualizada con logo:', updateResult);
+        } catch (logoError) {
+          console.error('Error subiendo logo después de crear veterinaria:', logoError);
+          console.error('Detalles del error:', {
+            message: logoError.message,
+            response: logoError.response?.data
+          });
+          // No mostrar error al usuario ya que la veterinaria se creó exitosamente
+        }
+      } else {
+        console.log('No se subió logo porque:', {
+          hasResult: !!result,
+          hasData: !!(result && result.data),
+          hasVeterinary: !!(result && result.data && result.data.veterinary),
+          hasLogoFile: !!logoFile,
+          resultStructure: result ? Object.keys(result) : 'No result',
+          dataStructure: result?.data ? Object.keys(result.data) : 'No data',
+          veterinaryStructure: result?.data?.veterinary ? Object.keys(result.data.veterinary) : 'No veterinary'
+        });
+      }
+      
+      // Cerrar modal y recargar datos después de completar todo el proceso
+      onClose();
     } catch (error) {
       console.error('Error creando veterinaria:', error);
-      // Los errores específicos se manejan en el componente padre
+      
+      // Manejar errores del backend
+      if (error.response?.data) {
+        setBackendError(error.response.data);
+        setShowErrorModal(true);
+      } else if (error.message) {
+        setBackendError({ message: error.message });
+        setShowErrorModal(true);
+      } else {
+        setBackendError({ message: 'Error inesperado al crear la veterinaria' });
+        setShowErrorModal(true);
+      }
     } finally {
       setLoading(false);
     }
   };
+
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -490,10 +570,10 @@ const CreateVeterinaryModal = ({ onClose, onSubmit }) => {
                 
                 <div className="flex items-center space-x-4">
                   {/* Preview del logo */}
-                  {(logoPreview || formData.logo?.url) && (
+                  {logoPreview && (
                     <div className="relative">
                       <img
-                        src={logoPreview || formData.logo?.url}
+                        src={logoPreview}
                         alt="Logo preview"
                         className="w-16 h-16 object-cover rounded-lg border border-gray-300"
                       />
@@ -536,7 +616,7 @@ const CreateVeterinaryModal = ({ onClose, onSubmit }) => {
                           <svg className="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                           </svg>
-                          {formData.logo ? 'Cambiar Logo' : 'Subir Logo'}
+                          {logoPreview ? 'Cambiar Logo' : 'Subir Logo'}
                         </>
                       )}
                     </label>
@@ -699,6 +779,9 @@ const CreateVeterinaryModal = ({ onClose, onSubmit }) => {
                     </label>
                   ))}
                 </div>
+                {errors.services && (
+                  <p className="text-sm text-red-600">{errors.services}</p>
+                )}
               </div>
 
               {/* Especialidades */}
@@ -844,6 +927,14 @@ const CreateVeterinaryModal = ({ onClose, onSubmit }) => {
           </div>
         </form>
       </div>
+      
+      {/* Error Modal */}
+      <ErrorModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        error={backendError}
+        title="Error al crear veterinaria"
+      />
     </div>
   );
 };

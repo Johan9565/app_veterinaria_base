@@ -1,15 +1,15 @@
 const cloudinary = require('cloudinary').v2;
 
-// Verificar si las credenciales están configuradas
-if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
-  console.warn('⚠️  Advertencia: Credenciales de Cloudinary no configuradas. Usando valores demo.');
-  console.warn('   Configura las variables de entorno: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET');
-} else {
-  console.log('✅ Credenciales de Cloudinary configuradas correctamente');
-  console.log('   Cloud Name:', process.env.CLOUDINARY_CLOUD_NAME);
-  console.log('   API Key:', process.env.CLOUDINARY_API_KEY ? '***' + process.env.CLOUDINARY_API_KEY.slice(-4) : 'No configurada');
-  console.log('   API Secret:', process.env.CLOUDINARY_API_SECRET ? '***' + process.env.CLOUDINARY_API_SECRET.slice(-4) : 'No configurada');
-}
+// // Verificar si las credenciales están configuradas
+// if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+//   console.warn('⚠️  Advertencia: Credenciales de Cloudinary no configuradas. Usando valores demo.');
+//   console.warn('   Configura las variables de entorno: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET');
+// } else {
+//   console.log('✅ Credenciales de Cloudinary configuradas correctamente');
+//   console.log('   Cloud Name:', process.env.CLOUDINARY_CLOUD_NAME);
+//   console.log('   API Key:', process.env.CLOUDINARY_API_KEY ? '***' + process.env.CLOUDINARY_API_KEY.slice(-4) : 'No configurada');
+//   console.log('   API Secret:', process.env.CLOUDINARY_API_SECRET ? '***' + process.env.CLOUDINARY_API_SECRET.slice(-4) : 'No configurada');
+// }
 
 // Configurar Cloudinary con las credenciales
 cloudinary.config({

@@ -38,7 +38,13 @@ const veterinarySchema = new mongoose.Schema({
   website: {
     type: String,
     trim: true,
-    match: [/^https?:\/\/.+/, 'URL inválida']
+    validate: {
+      validator: function(v) {
+        if (!v) return true; // Campo opcional
+        return /^https?:\/\/.+/.test(v);
+      },
+      message: 'URL inválida'
+    }
   },
   logo: {
     url: {
@@ -56,9 +62,15 @@ const veterinarySchema = new mongoose.Schema({
       type: Number
     }
   },
-  services: [{
-    type: String,
-    trim: true,
+  services: {
+    type: [String],
+    required: [true, 'Los servicios son requeridos'],
+    validate: {
+      validator: function(v) {
+        return v && v.length > 0;
+      },
+      message: 'Debe seleccionar al menos un servicio'
+    },
     enum: [
       'consultas_generales',
       'vacunacion',
@@ -71,7 +83,7 @@ const veterinarySchema = new mongoose.Schema({
       'farmacia',
       'hospitalizacion'
     ]
-  }],
+  },
   specialties: [{
     type: String,
     trim: true
@@ -116,7 +128,13 @@ const veterinarySchema = new mongoose.Schema({
   emergencyPhone: {
     type: String,
     trim: true,
-    match: [/^[\+]?[0-9\s\-\(\)]{10,15}$/, 'Formato de teléfono inválido']
+    validate: {
+      validator: function(v) {
+        if (!v) return true; // Campo opcional
+        return /^[\+]?[0-9\s\-\(\)]{10,15}$/.test(v);
+      },
+      message: 'Formato de teléfono de emergencia inválido'
+    }
   },
   emergencyAvailable: {
     type: Boolean,

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Button from './ui/Button';
 import Input from './ui/Input';
+import ErrorModal from './ui/ErrorModal';
 
 const EditVeterinaryModal = ({ veterinary, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -24,6 +25,8 @@ const EditVeterinaryModal = ({ veterinary, onClose, onSubmit }) => {
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [backendError, setBackendError] = useState(null);
+  const [showErrorModal, setShowErrorModal] = useState(false);
 
   // Servicios disponibles
   const availableServices = [
@@ -79,21 +82,105 @@ const EditVeterinaryModal = ({ veterinary, onClose, onSubmit }) => {
     }
   }, [veterinary]);
 
+  // Validar campo individual
+  const validateField = (name, value) => {
+    switch (name) {
+      case 'name':
+        if (!value.trim()) {
+          return 'El nombre es requerido';
+        }
+        break;
+      
+      case 'address':
+        if (!value.trim()) {
+          return 'La dirección es requerida';
+        }
+        break;
+      
+      case 'phone':
+        if (!value.trim()) {
+          return 'El teléfono es requerido';
+        }
+        break;
+      
+      case 'email':
+        if (!value.trim()) {
+          return 'El email es requerido';
+        } else if (!/\S+@\S+\.\S+/.test(value.trim())) {
+          return 'El email no es válido';
+        }
+        break;
+      
+      case 'city':
+        if (!value.trim()) {
+          return 'La ciudad es requerida';
+        }
+        break;
+      
+      case 'state':
+        if (!value.trim()) {
+          return 'El estado es requerido';
+        }
+        break;
+      
+      case 'website':
+        if (value && !/^https?:\/\/.+/.test(value.trim())) {
+          return 'URL inválida';
+        }
+        break;
+      
+      case 'emergencyPhone':
+        if (value && !/^[\+]?[0-9\s\-\(\)]{10,15}$/.test(value.trim())) {
+          return 'Formato de teléfono de emergencia inválido';
+        }
+        break;
+      
+      case 'description':
+        if (value && value.trim().length > 500) {
+          return 'La descripción no puede exceder 500 caracteres';
+        }
+        break;
+      
+      case 'zipCode':
+        if (value && value.trim().length > 10) {
+          return 'El código postal no puede exceder 10 caracteres';
+        }
+        break;
+      
+      case 'country':
+        if (value && value.trim().length > 50) {
+          return 'El país no puede exceder 50 caracteres';
+        }
+        break;
+      
+      case 'services':
+        if (!value || value.length === 0) {
+          return 'Debe seleccionar al menos un servicio';
+        }
+        break;
+      
+      default:
+        return null;
+    }
+    return null;
+  };
+
   // Manejar cambios en el formulario
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    const fieldValue = type === 'checkbox' ? checked : value;
+    
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: fieldValue
     }));
 
-    // Limpiar error del campo
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: null
-      }));
-    }
+    // Validar campo en tiempo real
+    const fieldError = validateField(name, fieldValue);
+    setErrors(prev => ({
+      ...prev,
+      [name]: fieldError
+    }));
   };
 
   // Manejar cambios en servicios
@@ -146,6 +233,36 @@ const EditVeterinaryModal = ({ veterinary, onClose, onSubmit }) => {
       newErrors.state = 'El estado es requerido';
     }
 
+    // Validación del sitio web (opcional)
+    if (formData.website && !/^https?:\/\/.+/.test(formData.website.trim())) {
+      newErrors.website = 'URL inválida';
+    }
+
+    // Validación del teléfono de emergencias (opcional)
+    if (formData.emergencyPhone && !/^[\+]?[0-9\s\-\(\)]{10,15}$/.test(formData.emergencyPhone.trim())) {
+      newErrors.emergencyPhone = 'Formato de teléfono de emergencia inválido';
+    }
+
+    // Validación de la descripción (opcional)
+    if (formData.description && formData.description.trim().length > 500) {
+      newErrors.description = 'La descripción no puede exceder 500 caracteres';
+    }
+
+    // Validación del código postal (opcional)
+    if (formData.zipCode && formData.zipCode.trim().length > 10) {
+      newErrors.zipCode = 'El código postal no puede exceder 10 caracteres';
+    }
+
+    // Validación del país (opcional)
+    if (formData.country && formData.country.trim().length > 50) {
+      newErrors.country = 'El país no puede exceder 50 caracteres';
+    }
+
+    // Validación de servicios
+    if (!formData.services || formData.services.length === 0) {
+      newErrors.services = 'Debe seleccionar al menos un servicio';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -159,12 +276,24 @@ const EditVeterinaryModal = ({ veterinary, onClose, onSubmit }) => {
     }
 
     setLoading(true);
+    setBackendError(null);
 
     try {
       await onSubmit(veterinary._id, formData);
     } catch (error) {
       console.error('Error actualizando veterinaria:', error);
-      // Los errores específicos se manejan en el componente padre
+      
+      // Manejar errores del backend
+      if (error.response?.data) {
+        setBackendError(error.response.data);
+        setShowErrorModal(true);
+      } else if (error.message) {
+        setBackendError({ message: error.message });
+        setShowErrorModal(true);
+      } else {
+        setBackendError({ message: 'Error inesperado al actualizar la veterinaria' });
+        setShowErrorModal(true);
+      }
     } finally {
       setLoading(false);
     }
@@ -227,6 +356,7 @@ const EditVeterinaryModal = ({ veterinary, onClose, onSubmit }) => {
                 type="url"
                 value={formData.website}
                 onChange={handleChange}
+                error={errors.website}
                 placeholder="https://www.veterinaria.com"
               />
 
@@ -294,6 +424,7 @@ const EditVeterinaryModal = ({ veterinary, onClose, onSubmit }) => {
                 name="emergencyPhone"
                 value={formData.emergencyPhone}
                 onChange={handleChange}
+                error={errors.emergencyPhone}
                 placeholder="(555) 999-8888"
               />
 
@@ -386,6 +517,9 @@ const EditVeterinaryModal = ({ veterinary, onClose, onSubmit }) => {
                     </label>
                   ))}
                 </div>
+                {errors.services && (
+                  <p className="text-sm text-red-600 mt-1">{errors.services}</p>
+                )}
               </div>
 
               {/* Especialidades */}
@@ -452,6 +586,14 @@ const EditVeterinaryModal = ({ veterinary, onClose, onSubmit }) => {
           </div>
         </form>
       </div>
+      
+      {/* Error Modal */}
+      <ErrorModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        error={backendError}
+        title="Error al actualizar veterinaria"
+      />
     </div>
   );
 };

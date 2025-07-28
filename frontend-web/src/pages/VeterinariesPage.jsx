@@ -6,6 +6,7 @@ import Input from '../components/ui/Input';
 import CreateVeterinaryModal from '../components/CreateVeterinaryModal';
 import EditVeterinaryModal from '../components/EditVeterinaryModal';
 import Navbar from '../components/Navbar';
+import AlertService from '../services/alertService';
 
 const VeterinariesPage = () => {
   const { user } = useAuth();
@@ -58,13 +59,18 @@ const VeterinariesPage = () => {
   // Crear nueva veterinaria
   const handleCreateVeterinary = async (veterinaryData) => {
     try {
-      await veterinaryService.createVeterinary(veterinaryData);
-      setShowCreateModal(false);
-      loadVeterinaries();
+      const result = await veterinaryService.createVeterinary(veterinaryData);
+      return result;
     } catch (err) {
       console.error('Error creando veterinaria:', err);
       throw err;
     }
+  };
+
+  // Manejar cierre del modal de creación
+  const handleCreateModalClose = () => {
+    setShowCreateModal(false);
+    loadVeterinaries();
   };
 
   // Editar veterinaria
@@ -82,16 +88,69 @@ const VeterinariesPage = () => {
 
   // Eliminar veterinaria
   const handleDeleteVeterinary = async (id) => {
-    if (!window.confirm('¿Estás seguro de que quieres eliminar esta veterinaria?')) {
+    const confirmed = await AlertService.confirmDelete('esta veterinaria');
+    if (!confirmed) {
       return;
     }
 
     try {
       await veterinaryService.deleteVeterinary(id);
+      AlertService.success('Veterinaria eliminada', 'La veterinaria ha sido eliminada exitosamente');
       loadVeterinaries();
     } catch (err) {
       console.error('Error eliminando veterinaria:', err);
-      setError('Error al eliminar la veterinaria');
+      AlertService.error('Error al eliminar', 'No se pudo eliminar la veterinaria');
+    }
+  };
+
+  // Activar veterinaria
+  const handleActivateVeterinary = async (id) => {
+    const confirmed = await AlertService.confirmActivate('esta veterinaria');
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await veterinaryService.updateVeterinary(id, { isActive: true });
+      AlertService.success('Veterinaria activada', 'La veterinaria ha sido activada exitosamente');
+      loadVeterinaries();
+    } catch (err) {
+      console.error('Error activando veterinaria:', err);
+      AlertService.error('Error al activar', 'No se pudo activar la veterinaria');
+    }
+  };
+
+  // Desactivar veterinaria
+  const handleDeactivateVeterinary = async (id) => {
+    const confirmed = await AlertService.confirmDeactivate('esta veterinaria');
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await veterinaryService.updateVeterinary(id, { isActive: false });
+      AlertService.success('Veterinaria desactivada', 'La veterinaria ha sido desactivada exitosamente');
+      loadVeterinaries();
+    } catch (err) {
+      console.error('Error desactivando veterinaria:', err);
+      AlertService.error('Error al desactivar', 'No se pudo desactivar la veterinaria');
+    }
+  };
+   // Verificar veterinaria
+
+   const handleVerifyVeterinary = async (id) => {
+    const confirmed = await AlertService.confirmVerify('esta veterinaria');
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await veterinaryService.updateVeterinary(id, { isVerified: true });
+      AlertService.success('Veterinaria verificada', 'La veterinaria ha sido verificada exitosamente');
+      loadVeterinaries();
+    } catch (err) {
+      console.error('Error verificando veterinaria:', err);
+      AlertService.error('Error al verificar', 'No se pudo verificar la veterinaria');
     }
   };
 
@@ -311,18 +370,39 @@ const VeterinariesPage = () => {
                        onClick={() => openEditModal(veterinary)}
                        variant="outline"
                        size="sm"
-                       disabled={!user?.permissions?.includes('veterinaries.update')}
+                       disabled={!user?.permissions?.includes('veterinaries.edit')}
                      >
                        Editar
                      </Button>
+                     {veterinary.isActive && (
                      <Button
-                       onClick={() => handleDeleteVeterinary(veterinary._id)}
+                       onClick={() => handleDeactivateVeterinary(veterinary._id)}
                        variant="danger"
                        size="sm"
-                       disabled={!user?.permissions?.includes('veterinaries.delete')}
+                       disabled={!user?.permissions?.includes('veterinaries.edit')}
                      >
-                       Eliminar
+                       Desactivar
                      </Button>
+                     )}
+                     {!veterinary.isActive && (
+                     <Button
+                       onClick={() => handleActivateVeterinary(veterinary._id)}
+                       variant="success"
+                       size="sm"
+                       disabled={!user?.permissions?.includes('veterinaries.edit')}
+                     >
+                       Activar
+                     </Button>
+                     )}
+                     {user?.permissions?.includes('veterinaries.verify') && !veterinary.isVerified && (
+                     <Button
+                       onClick={() => handleVerifyVeterinary(veterinary._id)}
+                       variant="success"
+                       size="sm"
+                     >
+                       Verificar
+                     </Button>
+                     )}
                   </div>
                   
                   <Button
@@ -364,7 +444,7 @@ const VeterinariesPage = () => {
       {/* Modal de crear veterinaria */}
       {showCreateModal && (
         <CreateVeterinaryModal
-          onClose={() => setShowCreateModal(false)}
+          onClose={handleCreateModalClose}
           onSubmit={handleCreateVeterinary}
         />
       )}

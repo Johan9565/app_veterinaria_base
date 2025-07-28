@@ -93,7 +93,9 @@ class VeterinaryService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        const error = new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        error.response = { data: errorData };
+        throw error;
       }
 
       return await response.json();
@@ -114,7 +116,9 @@ class VeterinaryService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        const error = new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        error.response = { data: errorData };
+        throw error;
       }
 
       return await response.json();
@@ -134,7 +138,9 @@ class VeterinaryService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        const error = new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        error.response = { data: errorData };
+        throw error;
       }
 
       return await response.json();
@@ -199,7 +205,9 @@ class VeterinaryService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        const error = new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        error.response = { data: errorData };
+        throw error;
       }
 
       return await response.json();
@@ -219,7 +227,9 @@ class VeterinaryService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        const error = new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        error.response = { data: errorData };
+        throw error;
       }
 
       return await response.json();
