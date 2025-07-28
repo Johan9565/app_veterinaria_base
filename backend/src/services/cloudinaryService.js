@@ -51,15 +51,17 @@ class CloudinaryService {
     return this.uploadImage(file, 'veterinarias/logos');
   }
 
-  // Subir imágenes de veterinaria
+  // Subir logo/imagen de veterinaria
   async uploadVeterinaryImages(file) {
-    return this.uploadImage(file, 'veterinarias/images');
+    return this.uploadImage(file, 'veterinarias/logos');
   }
 
   // Eliminar imagen de Cloudinary
   async deleteImage(publicId) {
     try {
+      console.log('CloudinaryService.deleteImage - Intentando eliminar:', publicId);
       const result = await cloudinary.uploader.destroy(publicId);
+      console.log('CloudinaryService.deleteImage - Resultado:', result);
       return result;
     } catch (error) {
       console.error('Error eliminando imagen de Cloudinary:', error);

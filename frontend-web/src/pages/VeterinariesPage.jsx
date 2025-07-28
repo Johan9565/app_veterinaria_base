@@ -76,7 +76,12 @@ const VeterinariesPage = () => {
   // Editar veterinaria
   const handleEditVeterinary = async (id, veterinaryData) => {
     try {
-      await veterinaryService.updateVeterinary(id, veterinaryData);
+      // Si hay datos de imagen, usar el método específico
+      if (veterinaryData.logo) {
+        await veterinaryService.updateVeterinaryWithImage(id, veterinaryData);
+      } else {
+        await veterinaryService.updateVeterinary(id, veterinaryData);
+      }
       setShowEditModal(false);
       setSelectedVeterinary(null);
       loadVeterinaries();

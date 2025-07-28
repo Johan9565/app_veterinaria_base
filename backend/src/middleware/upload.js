@@ -46,6 +46,9 @@ const upload = multer({
 // Middleware para subir logo de veterinaria
 const uploadVeterinaryLogo = upload.single('logo');
 
+// Middleware para subir imagen de veterinaria
+const uploadVeterinaryImage = upload.single('image');
+
 // Middleware para limpiar archivos temporales
 const cleanupTempFile = (req, res, next) => {
   // Limpiar archivo temporal después de procesar
@@ -63,5 +66,6 @@ const cleanupTempFile = (req, res, next) => {
 
 module.exports = {
   uploadVeterinaryLogo,
+  uploadVeterinaryImage,
   cleanupTempFile
 }; 

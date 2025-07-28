@@ -128,6 +128,29 @@ class VeterinaryService {
     }
   }
 
+  // PUT /api/veterinaries/:id - Actualizar veterinaria con imagen
+  async updateVeterinaryWithImage(id, veterinaryData) {
+    try {
+      const response = await fetch(`${this.baseURL}/${id}`, {
+        method: 'PUT',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(veterinaryData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        const error = new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        error.response = { data: errorData };
+        throw error;
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error actualizando veterinaria con imagen:', error);
+      throw error;
+    }
+  }
+
   // DELETE /api/veterinaries/:id - Eliminar veterinaria
   async deleteVeterinary(id) {
     try {

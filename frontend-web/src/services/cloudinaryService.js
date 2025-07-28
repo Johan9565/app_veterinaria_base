@@ -52,7 +52,7 @@ class CloudinaryService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Error al subir la imagen');
+        throw new Error(errorData.message || 'Error al subir el logo de la veterinaria');
       }
 
       const result = await response.json();
@@ -66,7 +66,10 @@ class CloudinaryService {
   // Eliminar imagen de Cloudinary
   async deleteImage(publicId) {
     try {
-      const response = await fetch(`${this.baseURL}/image/${publicId}`, {
+      // Codificar el publicId para la URL
+      const encodedPublicId = encodeURIComponent(publicId);
+
+      const response = await fetch(`${this.baseURL}/image/${encodedPublicId}`, {
         method: 'DELETE',
         headers: this.getAuthHeaders()
       });

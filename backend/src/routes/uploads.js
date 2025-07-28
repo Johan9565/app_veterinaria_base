@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const uploadController = require('../controllers/uploadController');
 const { authenticateToken, requirePermission } = require('../middleware/auth');
-const { uploadVeterinaryLogo, cleanupTempFile } = require('../middleware/upload');
+const { uploadVeterinaryLogo, uploadVeterinaryImage, cleanupTempFile } = require('../middleware/upload');
 
 // POST /api/uploads/veterinary-logo - Subir logo de veterinaria
 router.post('/veterinary-logo', 
@@ -17,7 +17,7 @@ router.post('/veterinary-logo',
 router.post('/veterinary-image', 
   authenticateToken, 
   requirePermission('veterinaries.create'),
-  uploadVeterinaryLogo, // Reutilizamos el mismo middleware
+  uploadVeterinaryImage, // Usamos el middleware específico para imágenes
   cleanupTempFile,
   uploadController.uploadVeterinaryImage
 );

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Button from './ui/Button';
 import Input from './ui/Input';
 import ErrorModal from './ui/ErrorModal';
+import cloudinaryService from '../services/cloudinaryService';
 
 const EditVeterinaryModal = ({ veterinary, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -27,6 +28,10 @@ const EditVeterinaryModal = ({ veterinary, onClose, onSubmit }) => {
   const [loading, setLoading] = useState(false);
   const [backendError, setBackendError] = useState(null);
   const [showErrorModal, setShowErrorModal] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [imageLoading, setImageLoading] = useState(false);
+  const [operationStep, setOperationStep] = useState('');
 
   // Servicios disponibles
   const availableServices = [
@@ -77,7 +82,9 @@ const EditVeterinaryModal = ({ veterinary, onClose, onSubmit }) => {
         zipCode: veterinary.zipCode || '',
         country: veterinary.country || 'México',
         isActive: veterinary.isActive !== undefined ? veterinary.isActive : true,
-        isVerified: veterinary.isVerified || false
+        isVerified: veterinary.isVerified || false,
+        image: veterinary.logo?.url || '',
+        imagePublicId: veterinary.logo?.publicId || ''
       });
     }
   }, [veterinary]);
@@ -203,6 +210,48 @@ const EditVeterinaryModal = ({ veterinary, onClose, onSubmit }) => {
     }));
   };
 
+  // Manejar selección de imagen
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validar archivo
+    const validation = cloudinaryService.validateImageFile(file);
+    if (!validation.valid) {
+      setErrors(prev => ({
+        ...prev,
+        image: validation.error
+      }));
+      return;
+    }
+
+    setImageFile(file);
+    setErrors(prev => ({ ...prev, image: null }));
+
+    // Crear preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setImagePreview(e.target.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Eliminar imagen seleccionada
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setErrors(prev => ({ ...prev, image: null }));
+  };
+
+  // Limpiar estado al cerrar modal
+  const handleClose = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setOperationStep('');
+    setErrors({});
+    onClose();
+  };
+
   // Validar formulario
   const validateForm = () => {
     const newErrors = {};
@@ -279,7 +328,54 @@ const EditVeterinaryModal = ({ veterinary, onClose, onSubmit }) => {
     setBackendError(null);
 
     try {
-      await onSubmit(veterinary._id, formData);
+      let updatedData = { ...formData };
+      let oldImagePublicId = null;
+
+      // Guardar el publicId de la imagen anterior si existe
+      if (formData.imagePublicId) {
+        oldImagePublicId = formData.imagePublicId;
+      }
+
+      // Si hay una nueva imagen, subirla primero
+      if (imageFile) {
+        setImageLoading(true);
+        setOperationStep('Subiendo nueva imagen...');
+        try {
+          const uploadResult = await cloudinaryService.uploadVeterinaryImage(imageFile);
+          updatedData.logo = {
+            url: uploadResult.url,
+            publicId: uploadResult.publicId,
+            width: uploadResult.width,
+            height: uploadResult.height
+          };
+        } catch (uploadError) {
+          console.error('Error subiendo imagen:', uploadError);
+          setBackendError({ message: 'Error al subir la imagen: ' + uploadError.message });
+          setShowErrorModal(true);
+          setImageLoading(false);
+          setLoading(false);
+          setOperationStep('');
+          return;
+        } finally {
+          setImageLoading(false);
+        }
+      }
+
+      // Actualizar la veterinaria con los nuevos datos
+      setOperationStep('Actualizando datos de la veterinaria...');
+      await onSubmit(veterinary._id, updatedData);
+
+      // Si se subió una nueva imagen y había una anterior, eliminar la anterior
+      if (imageFile && oldImagePublicId) {
+        setOperationStep('Eliminando imagen anterior...');
+        try {
+          await cloudinaryService.deleteImage(oldImagePublicId);
+          console.log('Imagen anterior eliminada exitosamente');
+        } catch (deleteError) {
+          console.error('Error eliminando imagen anterior:', deleteError);
+          // No mostrar error al usuario ya que la actualización fue exitosa
+        }
+      }
     } catch (error) {
       console.error('Error actualizando veterinaria:', error);
       
@@ -296,6 +392,7 @@ const EditVeterinaryModal = ({ veterinary, onClose, onSubmit }) => {
       }
     } finally {
       setLoading(false);
+      setOperationStep('');
     }
   };
 
@@ -313,7 +410,7 @@ const EditVeterinaryModal = ({ veterinary, onClose, onSubmit }) => {
             <p className="text-sm text-gray-600 mt-1">{veterinary.name}</p>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -391,6 +488,83 @@ const EditVeterinaryModal = ({ veterinary, onClose, onSubmit }) => {
                     Veterinaria verificada
                   </label>
                 </div>
+              </div>
+            </div>
+
+            {/* Imagen de la veterinaria */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900 border-b border-gray-200 pb-2">
+                Imagen de la Veterinaria
+              </h3>
+
+              {/* Imagen actual */}
+              {(formData.image || imagePreview) && (
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Imagen Actual
+                  </label>
+                  <div className="relative inline-block">
+                    <img
+                      src={imagePreview || formData.image}
+                      alt="Imagen de la veterinaria"
+                      className="w-32 h-32 object-cover rounded-lg border border-gray-300"
+                      onError={(e) => {
+                        console.error('Error cargando imagen:', e.target.src);
+                        e.target.style.display = 'none';
+                      }}
+                    />
+                    {imageLoading && (
+                      <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
+                        <div className="text-white text-sm">{operationStep || 'Subiendo...'}</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Subir nueva imagen */}
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-gray-700">
+                  {formData.image ? 'Cambiar Imagen' : 'Subir Imagen'}
+                </label>
+                
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="file"
+                    id="veterinary-image"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                    disabled={imageLoading}
+                  />
+                  <label
+                    htmlFor="veterinary-image"
+                    className={`px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer ${
+                      imageLoading ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  >
+                    {imageLoading ? 'Subiendo...' : 'Seleccionar Imagen'}
+                  </label>
+                  
+                  {imageFile && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="px-4 py-2 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                      disabled={imageLoading}
+                    >
+                      Cancelar
+                    </button>
+                  )}
+                </div>
+
+                {errors.image && (
+                  <p className="text-sm text-red-600">{errors.image}</p>
+                )}
+
+                <p className="text-xs text-gray-500">
+                  Formatos permitidos: JPG, PNG, GIF, WebP. Tamaño máximo: 5MB
+                </p>
               </div>
             </div>
 
@@ -570,7 +744,7 @@ const EditVeterinaryModal = ({ veterinary, onClose, onSubmit }) => {
             <Button
               type="button"
               variant="outline"
-              onClick={onClose}
+              onClick={handleClose}
               disabled={loading}
             >
               Cancelar
@@ -581,7 +755,7 @@ const EditVeterinaryModal = ({ veterinary, onClose, onSubmit }) => {
               loading={loading}
               disabled={loading}
             >
-              {loading ? 'Guardando...' : 'Guardar Cambios'}
+              {loading ? (operationStep || 'Guardando...') : 'Guardar Cambios'}
             </Button>
           </div>
         </form>

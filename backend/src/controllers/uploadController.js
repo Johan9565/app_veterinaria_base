@@ -63,7 +63,7 @@ class UploadController {
 
       res.json({
         success: true,
-        message: 'Imagen subida exitosamente',
+        message: 'Logo de veterinaria subido exitosamente',
         data: result
       });
 
@@ -71,7 +71,7 @@ class UploadController {
       console.error('Error en uploadVeterinaryImage:', error);
       res.status(500).json({
         success: false,
-        message: 'Error al subir la imagen',
+        message: 'Error al subir el logo de la veterinaria',
         error: error.message
       });
     }
@@ -89,7 +89,11 @@ class UploadController {
         });
       }
 
-      const result = await cloudinaryService.deleteImage(publicId);
+      // Decodificar el publicId
+      const decodedPublicId = decodeURIComponent(publicId);
+      console.log('Eliminando imagen con publicId:', decodedPublicId);
+
+      const result = await cloudinaryService.deleteImage(decodedPublicId);
 
       res.json({
         success: true,
