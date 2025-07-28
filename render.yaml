@@ -4,8 +4,9 @@ services:
     name: veterinaria-backend
     env: node
     plan: free
-    buildCommand: cd backend && npm install
-    startCommand: cd backend && npm start
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
@@ -27,8 +28,9 @@ services:
     name: veterinaria-frontend
     env: static
     plan: free
-    buildCommand: cd frontend-web && npm install && npm run build
-    staticPublishPath: ./frontend-web/dist
+    rootDir: frontend-web
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
     envVars:
       - key: VITE_API_URL
         value: https://veterinaria-backend.onrender.com/api 
