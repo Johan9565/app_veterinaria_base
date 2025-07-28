@@ -1,0 +1,13 @@
+{
+  "name": "veterinaria-mobile",
+  "version": "1.0.0",
+  "description": "Mobile app for veterinaria",
+  "main": "index.js",
+  "scripts": {
+    "start": "echo 'Mobile app placeholder'",
+    "test": "echo 'No tests specified'"
+  },
+  "keywords": ["mobile", "veterinaria"],
+  "author": "",
+  "license": "ISC"
+}
