@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, User, Mail, Lock, Phone, Eye, EyeOff } from 'lucide-react';
 import Button from './ui/Button';
 import Input from './ui/Input';
 import Select2 from './ui/Select2';
+import { roleService } from '../services/roleService';
+import { useAuth } from '../contexts/AuthContext';
 
 const CreateUserModal = ({ isOpen, onClose, onSave }) => {
+  const { user: currentUser } = useAuth();
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -17,6 +21,56 @@ const CreateUserModal = ({ isOpen, onClose, onSave }) => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [roles, setRoles] = useState([]);
+  const [loadingRoles, setLoadingRoles] = useState(false);
+
+  // Cargar roles cuando el modal se abre
+  useEffect(() => {
+    if (isOpen && roles.length === 0) {
+      loadRoles();
+    }
+  }, [isOpen]);
+
+  const loadRoles = async () => {
+    setLoadingRoles(true);
+    try {
+      console.log('🔄 Cargando roles públicos desde la API...');
+      const response = await roleService.getPublicRoles();
+      console.log('📋 Respuesta del API de roles públicos:', response);
+      
+      if (response.success && response.data && response.data.length > 0) {
+        // Filtrar el rol 'admin' para que no aparezca en el select
+        const filteredRoles = response.data.filter(role => role.name !== 'admin');
+        
+        const rolesOptions = filteredRoles.map(role => ({
+          value: role.name,
+          label: role.displayName
+        }));
+        console.log('✅ Roles públicos cargados (sin admin):', rolesOptions);
+        setRoles(rolesOptions);
+        // Si no hay un rol seleccionado, seleccionar el primero
+        if (!formData.role && rolesOptions.length > 0) {
+          setFormData(prev => ({ ...prev, role: rolesOptions[0].value }));
+        }
+      } else {
+        console.log('⚠️ No se encontraron roles en la base de datos, usando roles por defecto');
+        // Si no hay roles en la base de datos, usar roles por defecto
+        setRoles([
+          { value: 'cliente', label: 'Cliente' },
+          { value: 'veterinario', label: 'Veterinario' }
+        ]);
+      }
+    } catch (error) {
+      console.error('❌ Error cargando roles públicos:', error);
+      // En caso de error, usar roles por defecto
+      setRoles([
+        { value: 'cliente', label: 'Cliente' },
+        { value: 'veterinario', label: 'Veterinario' }
+      ]);
+    } finally {
+      setLoadingRoles(false);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -84,9 +138,11 @@ const CreateUserModal = ({ isOpen, onClose, onSave }) => {
         email: formData.email.trim(),
         phone: formData.phone.trim(),
         password: formData.password,
-        role: formData.role
+        role: formData.role,
+        owner_id: currentUser._id // Agregar el ID del usuario que crea el nuevo usuario
       };
 
+      console.log('📝 Datos del usuario a crear:', userData);
       await onSave(userData);
       
       // Limpiar formulario
@@ -118,6 +174,7 @@ const CreateUserModal = ({ isOpen, onClose, onSave }) => {
         role: 'cliente'
       });
       setErrors({});
+      setRoles([]); // Limpiar roles para que se vuelvan a cargar la próxima vez
       onClose();
     }
   };
@@ -190,16 +247,16 @@ const CreateUserModal = ({ isOpen, onClose, onSave }) => {
                 Rol
               </label>
               <Select2
-                options={[
-                  { value: 'cliente', label: 'Cliente' },
-                  { value: 'veterinario', label: 'Veterinario' }
-                ]}
+                options={roles}
                 value={formData.role}
                 onChange={(value) => setFormData(prev => ({ ...prev, role: value }))}
-                placeholder="Seleccionar rol"
-                disabled={loading}
+                placeholder={loadingRoles ? "Cargando roles..." : "Seleccionar rol"}
+                disabled={loading || loadingRoles}
                 className="w-full"
               />
+              {loadingRoles && (
+                <p className="mt-1 text-sm text-gray-500">Cargando roles disponibles...</p>
+              )}
             </div>
             
             <div>

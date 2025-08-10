@@ -58,6 +58,11 @@ const userSchema = new mongoose.Schema({
   phoneVerified: {
     type: Boolean,
     default: false
+  },
+  owner_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: false // Opcional para usuarios creados por el sistema
   }
 }, {
   timestamps: true
@@ -67,6 +72,7 @@ const userSchema = new mongoose.Schema({
 userSchema.index({ email: 1 });
 userSchema.index({ role: 1 });
 userSchema.index({ isActive: 1 });
+userSchema.index({ owner_id: 1 });
 
 // Middleware para hashear contraseña antes de guardar
 userSchema.pre('save', async function(next) {
@@ -128,6 +134,12 @@ userSchema.methods.toPublicJSON = function() {
 
 // Método estático para obtener permisos por rol
 userSchema.statics.getDefaultPermissions = async function(role) {
+  // Si el rol es 'admin', devolver todos los permisos disponibles
+  if (role === 'admin') {
+    const allPermissions = await Permission.find({ isActive: true }).distinct('name');
+    return allPermissions;
+  }
+  
   // Obtener el rol de la base de datos
   const roleDoc = await Role.getByName(role);
   if (!roleDoc) {
@@ -135,6 +147,11 @@ userSchema.statics.getDefaultPermissions = async function(role) {
   }
   
   return roleDoc.permissions;
+};
+
+// Método estático para poblar el propietario
+userSchema.statics.populateOwner = function() {
+  return this.populate('owner_id', 'name email role');
 };
 
 module.exports = mongoose.model('User', userSchema); 

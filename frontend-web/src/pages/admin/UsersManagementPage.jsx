@@ -169,7 +169,7 @@ const UsersManagementPage = () => {
   };
 
   const handleToggleStatus = async (userId, currentStatus) => {
-    if (!hasPermission('users.update')) {
+    if (!hasPermission('users.edit')) {
       Swal.fire({
         icon: 'error',
         title: 'Acceso denegado',
@@ -613,7 +613,7 @@ const UsersManagementPage = () => {
                           <Shield size={16} />
                         </button>
                       )}
-                      {hasPermission('users.update') && (
+                      {hasPermission('users.edit') && (
                         <button
                           onClick={() => handleEditUser(user)}
                           className="text-indigo-600 hover:text-indigo-900 p-1"
@@ -622,7 +622,7 @@ const UsersManagementPage = () => {
                           <Edit size={16} />
                         </button>
                       )}
-                      {hasPermission('users.update') && (
+                      {hasPermission('users.edit') && (
                         <button
                           onClick={() => handleToggleStatus(user._id, user.isActive)}
                           className={`p-1 ${user.isActive ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'}`}
@@ -631,15 +631,7 @@ const UsersManagementPage = () => {
                           <Eye size={16} />
                         </button>
                       )}
-                      {hasPermission('users.delete') && user._id !== currentUser?._id && (
-                        <button
-                          onClick={() => handleDeleteUser(user._id)}
-                          className="text-red-600 hover:text-red-900 p-1"
-                          title="Eliminar Usuario"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      )}
+                     
                     </div>
                   </td>
                 </tr>

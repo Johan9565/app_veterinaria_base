@@ -3,7 +3,6 @@ const { body } = require('express-validator');
 const { 
   authenticateToken, 
   requirePermission, 
-  requireRole,
   requireOwnershipOrPermission 
 } = require('../middleware/auth');
 const userController = require('../controllers/userController');
@@ -29,7 +28,7 @@ const updateUserValidation = [
     .withMessage('El teléfono debe tener al menos 10 caracteres'),
   body('role')
     .optional()
-    .isIn(['cliente', 'veterinario'])
+    .isIn(['cliente', 'veterinario', 'asistente', 'recepcionista'])
     .withMessage('Rol inválido'),
   body('isActive')
     .optional()
@@ -55,8 +54,12 @@ const createUserValidation = [
     .isLength({ min: 6 })
     .withMessage('La contraseña debe tener al menos 6 caracteres'),
   body('role')
-    .isIn(['cliente', 'veterinario'])
-    .withMessage('Rol inválido')
+    .isIn(['cliente', 'veterinario', 'asistente', 'recepcionista'])
+    .withMessage('Rol inválido'),
+  body('owner_id')
+    .optional()
+    .isMongoId()
+    .withMessage('ID de propietario inválido')
 ];
 
 // GET /api/users - Obtener lista de usuarios (solo admin)

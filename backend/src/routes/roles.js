@@ -49,6 +49,11 @@ router.get('/',
   roleController.getAllRoles
 );
 
+// GET /api/roles/public - Obtener roles públicos (sin permisos especiales)
+router.get('/public', 
+  roleController.getPublicRoles
+);
+
 // GET /api/roles/system - Obtener roles del sistema
 router.get('/system', 
   authorize(['roles.view']), 

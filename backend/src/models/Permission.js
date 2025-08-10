@@ -54,7 +54,11 @@ permissionSchema.methods.getFullName = function() {
 
 // Método estático para obtener todos los permisos activos
 permissionSchema.statics.getActivePermissions = function() {
-  return this.find({ isActive: true }).sort({ category: 1, action: 1 });
+  if (this.role === 'admin') {
+    return this.find().sort({ category: 1, action: 1 });
+  } else {
+    return this.find({ isActive: true, role: this.role }).sort({ category: 1, action: 1 });
+  }
 };
 
 // Método estático para obtener permisos por categoría
@@ -69,7 +73,11 @@ permissionSchema.statics.getByAction = function(action) {
 
 // Método estático para obtener todos los nombres de permisos activos
 permissionSchema.statics.getAllPermissionNames = async function() {
-  const permissions = await this.find({ isActive: true }).select('name');
+  if (this.role === 'admin') {
+    const permissions = await this.find().select('name');
+  } else {
+    const permissions = await this.find({ isActive: true, role: this.role }).select('name');
+  }
   return permissions.map(p => p.name);
 };
 
