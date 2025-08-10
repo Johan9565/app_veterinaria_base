@@ -200,6 +200,7 @@ const assignPermissionsToUser = async (req, res) => {
       });
     }
     
+    if (req.user.role !== 'admin') {
     // Validar que todos los permisos existen en la base de datos
     const invalidPermissions = [];
     for (const permission of permissions) {
@@ -224,6 +225,7 @@ const assignPermissionsToUser = async (req, res) => {
         invalidPermissions
       });
     }
+  }
     
     // Guardar permisos anteriores para el log
     const previousPermissions = [...user.permissions];

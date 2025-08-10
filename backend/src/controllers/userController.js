@@ -21,15 +21,18 @@ const getAllUsers = async (req, res) => {
     }
 
     const skip = (page - 1) * limit;
-    
-    const users = await User.find(filters)
+
+    if(req.user.role === 'admin'){
+      const users = await User.find(filters)
       .select('-password')
+      .populate('owner_id', 'name email role')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
 
+   
     const total = await User.countDocuments(filters);
-
+  
     res.json({
       users,
       pagination: {
@@ -39,6 +42,24 @@ const getAllUsers = async (req, res) => {
         pages: Math.ceil(total / limit)
       }
     });
+  }else{
+    const users = await User.find({owner_id: req.user._id})
+    .select('-password')
+    .populate('owner_id', 'name email role')
+    .sort({ createdAt: -1 })
+    .skip(skip);
+    const total = await User.countDocuments(filters);
+  
+    res.json({
+      users,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  }
 
   } catch (error) {
     console.error('Error obteniendo usuarios:', error);
@@ -60,7 +81,7 @@ const createUser = async (req, res) => {
       });
     }
 
-    const { name, email, phone, password, role } = req.body;
+    const { name, email, phone, password, role, owner_id } = req.body;
 
     // Verificar si el email ya existe
     const existingUser = await User.findOne({ email });
@@ -68,6 +89,16 @@ const createUser = async (req, res) => {
       return res.status(400).json({
         message: 'El email ya está registrado'
       });
+    }
+
+    // Verificar que el owner_id sea válido si se proporciona
+    if (owner_id) {
+      const ownerExists = await User.findById(owner_id);
+      if (!ownerExists) {
+        return res.status(400).json({
+          message: 'El usuario propietario especificado no existe'
+        });
+      }
     }
 
     // Obtener permisos por defecto del rol
@@ -81,7 +112,8 @@ const createUser = async (req, res) => {
       password,
       role,
       permissions: defaultPermissions,
-      isActive: true
+      isActive: true,
+      owner_id: owner_id || req.user._id // Usar el owner_id del frontend o el usuario actual
     });
 
     await user.save();
@@ -97,7 +129,9 @@ const createUser = async (req, res) => {
       userId: user._id,
       userRole: user.role,
       userPermissionsCount: user.permissions.length,
-      hasCustomPermissions: user.permissions.length !== defaultPermissions.length
+      hasCustomPermissions: user.permissions.length !== defaultPermissions.length,
+      owner_id: user.owner_id,
+      createdBy: req.user._id
     });
   } catch (error) {
     console.error('Error creando usuario:', error);
@@ -126,7 +160,9 @@ const createUser = async (req, res) => {
 // GET /api/users/:id - Obtener usuario específico
 const getUserById = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select('-password');
+    const user = await User.findById(req.params.id)
+      .select('-password')
+      .populate('owner_id', 'name email role');
     
     if (!user) {
       return res.status(404).json({
@@ -403,28 +439,65 @@ const activateUser = async (req, res) => {
 // GET /api/users/stats - Estadísticas de usuarios (solo admin)
 const getUserStats = async (req, res) => {
   try {
-    const stats = await User.aggregate([
-      {
-        $group: {
-          _id: '$role',
-          count: { $sum: 1 },
-          active: {
-            $sum: { $cond: ['$isActive', 1, 0] }
+    let stats;
+    let totalUsers;
+    let activeUsers;
+
+    if (req.user.role === 'admin') {
+      // Si es admin, traer estadísticas de todos los usuarios
+      stats = await User.aggregate([
+        {
+          $group: {
+            _id: '$role',
+            count: { $sum: 1 },
+            active: {
+              $sum: { $cond: ['$isActive', 1, 0] }
+            }
           }
         }
-      }
-    ]);
+      ]);
 
-    const totalUsers = await User.countDocuments();
-    const activeUsers = await User.countDocuments({ isActive: true });
+      totalUsers = await User.countDocuments();
+      activeUsers = await User.countDocuments({ isActive: true });
 
-    res.json({
-      totalUsers,
-      activeUsers,
-      byRole: stats,
-      inactiveUsers: totalUsers - activeUsers
-    });
+      res.json({
+        totalUsers,
+        activeUsers,
+        byRole: stats,
+        inactiveUsers: totalUsers - activeUsers
+      });
+    } else {
+      // Si no es admin, solo traer estadísticas de usuarios donde owner_id sea igual al user.id
+      stats = await User.aggregate([
+        {
+          $match: {
+            owner_id: req.user._id
+          }
+        },
+        {
+          $group: {
+            _id: '$role',
+            count: { $sum: 1 },
+            active: {
+              $sum: { $cond: ['$isActive', 1, 0] }
+            }
+          }
+        }
+      ]);
 
+      totalUsers = await User.countDocuments({ owner_id: req.user._id });
+      activeUsers = await User.countDocuments({ 
+        owner_id: req.user._id, 
+        isActive: true 
+      });
+
+      res.json({
+        totalUsers,
+        activeUsers,
+        byRole: stats,
+        inactiveUsers: totalUsers - activeUsers
+      });
+    }
   } catch (error) {
     console.error('Error obteniendo estadísticas:', error);
     res.status(500).json({

@@ -59,6 +59,25 @@ const getCustomRoles = async (req, res) => {
   }
 };
 
+// GET /api/roles/public - Obtener roles públicos (sin permisos especiales)
+const getPublicRoles = async (req, res) => {
+  try {
+    const roles = await Role.getPublicRoles();
+    
+    res.json({
+      success: true,
+      data: roles,
+      message: 'Roles públicos obtenidos exitosamente'
+    });
+  } catch (error) {
+    console.error('Error obteniendo roles públicos:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor'
+    });
+  }
+};
+
 // GET /api/roles/:id - Obtener rol específico
 const getRoleById = async (req, res) => {
   try {
@@ -366,6 +385,7 @@ module.exports = {
   getAllRoles,
   getSystemRoles,
   getCustomRoles,
+  getPublicRoles,
   getRoleById,
   createRole,
   updateRole,

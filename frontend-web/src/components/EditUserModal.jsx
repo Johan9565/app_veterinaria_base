@@ -3,6 +3,7 @@ import { X, User, Mail, Phone, Eye, EyeOff, Save } from 'lucide-react';
 import Button from './ui/Button';
 import Input from './ui/Input';
 import Select2 from './ui/Select2';
+import { roleService } from '../services/roleService';
 
 const EditUserModal = ({ isOpen, onClose, onSave, user }) => {
   const [formData, setFormData] = useState({
@@ -15,6 +16,15 @@ const EditUserModal = ({ isOpen, onClose, onSave, user }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [roles, setRoles] = useState([]);
+  const [loadingRoles, setLoadingRoles] = useState(false);
+
+  // Cargar roles cuando el modal se abre
+  useEffect(() => {
+    if (isOpen && roles.length === 0) {
+      loadRoles();
+    }
+  }, [isOpen]);
 
   // Actualizar formulario cuando cambie el usuario
   useEffect(() => {
@@ -36,6 +46,42 @@ const EditUserModal = ({ isOpen, onClose, onSave, user }) => {
       }, 200);
     }
   }, [user, isOpen]);
+
+  const loadRoles = async () => {
+    setLoadingRoles(true);
+    try {
+      
+      const response = await roleService.getPublicRoles();
+      
+      if (response.success && response.data && response.data.length > 0) {
+        // Filtrar el rol 'admin' para que no aparezca en el select
+        const filteredRoles = response.data.filter(role => role.name !== 'admin');
+        
+        const rolesOptions = filteredRoles.map(role => ({
+          value: role.name,
+          label: role.displayName
+        }));
+       
+        setRoles(rolesOptions);
+      } else {
+      
+        // Si no hay roles en la base de datos, usar roles por defecto
+        setRoles([
+          { value: 'cliente', label: 'Cliente' },
+          { value: 'veterinario', label: 'Veterinario' }
+        ]);
+      }
+    } catch (error) {
+      console.error('❌ Error cargando roles públicos para edición:', error);
+      // En caso de error, usar roles por defecto
+      setRoles([
+        { value: 'cliente', label: 'Cliente' },
+        { value: 'veterinario', label: 'Veterinario' }
+      ]);
+    } finally {
+      setLoadingRoles(false);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -141,6 +187,7 @@ const EditUserModal = ({ isOpen, onClose, onSave, user }) => {
         isActive: true
       });
       setErrors({});
+      setRoles([]); // Limpiar roles para que se vuelvan a cargar la próxima vez
       onClose();
     }
   };
@@ -213,16 +260,16 @@ const EditUserModal = ({ isOpen, onClose, onSave, user }) => {
                 Rol
               </label>
               <Select2
-                options={[
-                  { value: 'cliente', label: 'Cliente' },
-                  { value: 'veterinario', label: 'Veterinario' }
-                ]}
+                options={roles}
                 value={formData.role}
                 onChange={(value) => handleSelectChange('role', value)}
-                placeholder="Seleccionar rol"
-                disabled={loading}
+                placeholder={loadingRoles ? "Cargando roles..." : "Seleccionar rol"}
+                disabled={loading || loadingRoles}
                 className="w-full"
               />
+              {loadingRoles && (
+                <p className="mt-1 text-sm text-gray-500">Cargando roles disponibles...</p>
+              )}
               {errors.role && (
                 <p className="mt-1 text-sm text-red-600">{errors.role}</p>
               )}

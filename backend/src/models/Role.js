@@ -64,6 +64,14 @@ roleSchema.statics.getCustomRoles = function() {
   return this.find({ isSystem: false, isActive: true }).sort({ priority: -1, name: 1 });
 };
 
+// Método estático para obtener roles públicos (excluyendo admin)
+roleSchema.statics.getPublicRoles = function() {
+  return this.find({ 
+    isActive: true, 
+    name: { $ne: 'admin' } 
+  }).sort({ priority: -1, name: 1 });
+};
+
 // Método estático para validar si un rol existe
 roleSchema.statics.isValidRole = async function(roleName) {
   const role = await this.findOne({ name: roleName.toLowerCase(), isActive: true });

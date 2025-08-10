@@ -3,7 +3,7 @@ services:
   - type: web
     name: veterinaria-backend
     env: node
-    plan: free
+    plan: starter
     rootDir: backend
     buildCommand: npm install
     startCommand: npm start
@@ -27,7 +27,7 @@ services:
   - type: web
     name: veterinaria-frontend
     env: static
-    plan: free
+    plan: starter
     rootDir: frontend-web
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
