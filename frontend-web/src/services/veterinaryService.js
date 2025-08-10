@@ -220,20 +220,27 @@ class VeterinaryService {
   // POST /api/veterinaries/:id/staff - Agregar personal
   async addStaffMember(veterinaryId, staffData) {
     try {
+     
+      
       const response = await fetch(`${this.baseURL}/${veterinaryId}/staff`, {
         method: 'POST',
         headers: this.getAuthHeaders(),
         body: JSON.stringify(staffData)
       });
 
+     
+
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('addStaffMember - Error response:', errorData);
         const error = new Error(errorData.message || `HTTP error! status: ${response.status}`);
         error.response = { data: errorData };
         throw error;
       }
 
-      return await response.json();
+      const result = await response.json();
+   
+      return result;
     } catch (error) {
       console.error('Error agregando personal:', error);
       throw error;

@@ -405,7 +405,7 @@ const getUserVeterinaries = async (req, res) => {
 const addStaffMember = async (req, res) => {
   try {
     const { id } = req.params;
-    const { userId, role } = req.body;
+    const { userId } = req.body;
 
     
     const veterinary = await Veterinary.findById(id);
@@ -442,7 +442,8 @@ const addStaffMember = async (req, res) => {
       });
     }
     
-    veterinary.staff.push({ user: userId, role });
+    // Agregar al staff usando el rol del usuario
+    veterinary.staff.push({ user: userId, role: user.role });
     await veterinary.save();
     
     await veterinary.populate('staff.user', 'name email role');

@@ -196,12 +196,13 @@ const veterinarySchema = new mongoose.Schema({
   staff: [{
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
+      ref: 'User',
+      required: true
     },
     role: {
       type: String,
-      enum: ['veterinario', 'asistente', 'recepcionista', 'administrador'],
-      default: 'veterinario'
+      enum: ['veterinario', 'asistente', 'recepcionista', 'administrador', 'cliente'],
+      required: false // El rol se obtiene del usuario
     },
     addedAt: {
       type: Date,

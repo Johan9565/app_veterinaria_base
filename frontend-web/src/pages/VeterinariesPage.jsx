@@ -5,6 +5,7 @@ import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import CreateVeterinaryModal from '../components/CreateVeterinaryModal';
 import EditVeterinaryModal from '../components/EditVeterinaryModal';
+import StaffModal from '../components/StaffModal';
 import Navbar from '../components/Navbar';
 import AlertService from '../services/alertService';
 
@@ -15,6 +16,7 @@ const VeterinariesPage = () => {
   const [error, setError] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showStaffModal, setShowStaffModal] = useState(false);
   const [selectedVeterinary, setSelectedVeterinary] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCity, setFilterCity] = useState('');
@@ -165,6 +167,12 @@ const VeterinariesPage = () => {
     setShowEditModal(true);
   };
 
+  // Abrir modal de personal
+  const openStaffModal = (veterinary) => {
+    setSelectedVeterinary(veterinary);
+    setShowStaffModal(true);
+  };
+
   // Formatear servicios
   const formatServices = (services) => {
     if (!services || services.length === 0) return 'Sin servicios';
@@ -188,33 +196,74 @@ const VeterinariesPage = () => {
   // Formatear estado
   const getStatusBadge = (isActive, isVerified) => {
     if (!isActive) {
-      return <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">Inactiva</span>;
+      return (
+        <span className="px-3 py-1 text-xs font-semibold bg-red-100 text-red-700 rounded-full border border-red-200 flex items-center">
+          <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
+          Inactiva
+        </span>
+      );
     }
     if (isVerified) {
-      return <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Verificada</span>;
+      return (
+        <span className="px-3 py-1 text-xs font-semibold bg-green-100 text-green-700 rounded-full border border-green-200 flex items-center">
+          <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+          Verificada
+        </span>
+      );
     }
-    return <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">Pendiente</span>;
+    return (
+      <span className="px-3 py-1 text-xs font-semibold bg-yellow-100 text-yellow-700 rounded-full border border-yellow-200 flex items-center">
+        <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
+        Pendiente
+      </span>
+    );
   };
 
   // Formatear rol del usuario
   const getUserRoleBadge = (userRole) => {
-    const roleColors = {
-      owner: 'bg-purple-100 text-purple-800',
-      veterinario: 'bg-blue-100 text-blue-800',
-      asistente: 'bg-green-100 text-green-800',
-      recepcionista: 'bg-orange-100 text-orange-800'
+    const roleConfig = {
+      owner: {
+        label: 'Propietario',
+        bgColor: 'bg-purple-100',
+        textColor: 'text-purple-700',
+        borderColor: 'border-purple-200',
+        dotColor: 'bg-purple-500'
+      },
+      veterinario: {
+        label: 'Veterinario',
+        bgColor: 'bg-blue-100',
+        textColor: 'text-blue-700',
+        borderColor: 'border-blue-200',
+        dotColor: 'bg-blue-500'
+      },
+      asistente: {
+        label: 'Asistente',
+        bgColor: 'bg-green-100',
+        textColor: 'text-green-700',
+        borderColor: 'border-green-200',
+        dotColor: 'bg-green-500'
+      },
+      recepcionista: {
+        label: 'Recepcionista',
+        bgColor: 'bg-orange-100',
+        textColor: 'text-orange-700',
+        borderColor: 'border-orange-200',
+        dotColor: 'bg-orange-500'
+      }
     };
 
-    const roleLabels = {
-      owner: 'Propietario',
-      veterinario: 'Veterinario',
-      asistente: 'Asistente',
-      recepcionista: 'Recepcionista'
+    const config = roleConfig[userRole] || {
+      label: userRole,
+      bgColor: 'bg-gray-100',
+      textColor: 'text-gray-700',
+      borderColor: 'border-gray-200',
+      dotColor: 'bg-gray-500'
     };
 
     return (
-      <span className={`px-2 py-1 text-xs font-medium rounded-full ${roleColors[userRole] || 'bg-gray-100 text-gray-800'}`}>
-        {roleLabels[userRole] || userRole}
+      <span className={`px-3 py-1 text-xs font-semibold rounded-full border flex items-center ${config.bgColor} ${config.textColor} ${config.borderColor}`}>
+        <div className={`w-2 h-2 rounded-full mr-2 ${config.dotColor}`}></div>
+        {config.label}
       </span>
     );
   };
@@ -319,98 +368,153 @@ const VeterinariesPage = () => {
         {/* Lista de veterinarias */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {veterinaries.map((veterinary) => (
-            <div key={veterinary._id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-              {/* Header de la tarjeta */}
-              <div className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                      {veterinary.name}
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-2">
-                      {veterinary.address}
-                    </p>
-                    <div className="flex items-center gap-2 mb-3">
-                      {getStatusBadge(veterinary.isActive, veterinary.isVerified)}
-                      {veterinary.userRole && getUserRoleBadge(veterinary.userRole)}
-                    </div>
+            <div key={veterinary._id} className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+              {/* Header con imagen de fondo */}
+              <div className="relative h-32 bg-gradient-to-br from-blue-500 to-purple-600">
+                <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+                <div className="absolute top-4 right-4 flex items-center gap-2">
+                  {getStatusBadge(veterinary.isActive, veterinary.isVerified)}
+                  {veterinary.userRole && getUserRoleBadge(veterinary.userRole)}
+                </div>
+                <div className="absolute bottom-4 left-4">
+                  <div className="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center backdrop-blur-sm">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
                   </div>
                 </div>
+              </div>
 
-                {/* Información de contacto */}
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center text-sm text-gray-600">
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
-                    {veterinary.phone}
-                  </div>
-                  <div className="flex items-center text-sm text-gray-600">
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    {veterinary.email}
-                  </div>
-                  <div className="flex items-center text-sm text-gray-600">
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {/* Contenido principal */}
+              <div className="p-6">
+                {/* Nombre y dirección */}
+                <div className="mb-4">
+                  <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-1">
+                    {veterinary.name}
+                  </h3>
+                  <p className="text-sm text-gray-600 flex items-start">
+                    <svg className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    {veterinary.city}, {veterinary.state}
+                    <span className="line-clamp-2">{veterinary.address}</span>
+                  </p>
+                </div>
+
+                {/* Información de contacto */}
+                <div className="space-y-3 mb-6">
+                  <div className="flex items-center text-sm text-gray-700 hover:text-blue-600 transition-colors">
+                    <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center mr-3">
+                      <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      </svg>
+                    </div>
+                    <span className="font-medium">{veterinary.phone}</span>
+                  </div>
+                  
+                  <div className="flex items-center text-sm text-gray-700 hover:text-blue-600 transition-colors">
+                    <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center mr-3">
+                      <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <span className="font-medium truncate">{veterinary.email}</span>
+                  </div>
+                  
+                  <div className="flex items-center text-sm text-gray-700">
+                    <div className="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center mr-3">
+                      <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      </svg>
+                    </div>
+                    <span className="font-medium">{veterinary.city}, {veterinary.state}</span>
                   </div>
                 </div>
 
                 {/* Servicios */}
-                <div className="mb-4">
-                  <h4 className="text-sm font-medium text-gray-900 mb-2">Servicios:</h4>
-                  <p className="text-sm text-gray-600 line-clamp-2">
-                    {formatServices(veterinary.services)}
-                  </p>
+                <div className="mb-6">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center">
+                    <svg className="w-4 h-4 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Servicios disponibles
+                  </h4>
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <p className="text-sm text-gray-700 line-clamp-3 leading-relaxed">
+                      {formatServices(veterinary.services)}
+                    </p>
+                  </div>
                 </div>
 
                 {/* Acciones */}
-                <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                  <div className="flex space-x-2">
-                                         <Button
-                       onClick={() => openEditModal(veterinary)}
-                       variant="outline"
-                       size="sm"
-                       disabled={!user?.permissions?.includes('veterinaries.edit')}
-                     >
-                       Editar
-                     </Button>
-                     {veterinary.isActive && (
-                     <Button
-                       onClick={() => handleDeactivateVeterinary(veterinary._id)}
-                       variant="danger"
-                       size="sm"
-                       disabled={!user?.permissions?.includes('veterinaries.edit')}
-                     >
-                       Desactivar
-                     </Button>
-                     )}
-                     {!veterinary.isActive && (
-                     <Button
-                       onClick={() => handleActivateVeterinary(veterinary._id)}
-                       variant="success"
-                       size="sm"
-                       disabled={!user?.permissions?.includes('veterinaries.edit')}
-                     >
-                       Activar
-                     </Button>
-                     )}
-                     {user?.permissions?.includes('veterinaries.verify') && !veterinary.isVerified && (
-                     <Button
-                       onClick={() => handleVerifyVeterinary(veterinary._id)}
-                       variant="success"
-                       size="sm"
-                     >
-                       Verificar
-                     </Button>
-                     )}
-                  </div>
+                <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-100">
+                  <Button
+                    onClick={() => openEditModal(veterinary)}
+                    variant="outline"
+                    size="sm"
+                    disabled={!user?.permissions?.includes('veterinaries.edit')}
+                    className="flex-1 min-w-0"
+                  >
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Editar
+                  </Button>
                   
-                 
+                  <Button
+                    onClick={() => openStaffModal(veterinary)}
+                    variant="outline"
+                    size="sm"
+                    disabled={!user?.permissions?.includes('veterinaries.manage_staff')}
+                    className="flex-1 min-w-0"
+                  >
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                    </svg>
+                    Personal
+                  </Button>
+                  
+                  {veterinary.isActive ? (
+                    <Button
+                      onClick={() => handleDeactivateVeterinary(veterinary._id)}
+                      variant="danger"
+                      size="sm"
+                      disabled={!user?.permissions?.includes('veterinaries.edit')}
+                      className="flex-1 min-w-0"
+                    >
+                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" />
+                      </svg>
+                      Desactivar
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => handleActivateVeterinary(veterinary._id)}
+                      variant="success"
+                      size="sm"
+                      disabled={!user?.permissions?.includes('veterinaries.edit')}
+                      className="flex-1 min-w-0"
+                    >
+                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Activar
+                    </Button>
+                  )}
+                  
+                  {user?.permissions?.includes('veterinaries.verify') && !veterinary.isVerified && (
+                    <Button
+                      onClick={() => handleVerifyVeterinary(veterinary._id)}
+                      variant="success"
+                      size="sm"
+                      className="flex-1 min-w-0"
+                    >
+                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                      Verificar
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
@@ -458,6 +562,25 @@ const VeterinariesPage = () => {
             setSelectedVeterinary(null);
           }}
           onSubmit={handleEditVeterinary}
+        />
+      )}
+
+      {/* Modal de personal */}
+      {showStaffModal && selectedVeterinary && (
+        <StaffModal
+          veterinary={selectedVeterinary}
+          onClose={() => {
+            setShowStaffModal(false);
+            setSelectedVeterinary(null);
+          }}
+          onUpdate={() => {
+            try {
+              loadVeterinaries();
+            } catch (error) {
+              console.error('Error en onUpdate del StaffModal:', error);
+              // No hacer nada, solo loggear el error para evitar que rompa la página
+            }
+          }}
         />
       )}
     </div>

@@ -272,10 +272,7 @@ const updateVeterinaryValidation = [
 const addStaffValidation = [
   body('userId')
     .isMongoId()
-    .withMessage('ID de usuario inválido'),
-  body('role')
-    .isIn(['veterinario', 'asistente', 'recepcionista', 'administrador'])
-    .withMessage('Rol inválido')
+    .withMessage('ID de usuario inválido')
 ];
 
 // Middleware para manejar errores de validación
