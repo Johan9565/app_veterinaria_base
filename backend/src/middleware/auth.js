@@ -60,7 +60,7 @@ const requirePermission = (permission) => {
     }
 
     // Verificar que el permiso existe en la base de datos
-    const isValid = await Permission.isValidPermission(permission);
+    const isValid = await Permission.isValidPermissionForUser(permission, req.user.role);
     if (!isValid) {
       return res.status(400).json({ 
         message: 'Permiso inválido' 

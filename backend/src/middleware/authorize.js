@@ -26,7 +26,7 @@ const authorize = (requiredPermissions) => {
       const invalidPermissions = [];
 
       for (const permission of permissions) {
-        const isValid = await Permission.isValidPermission(permission);
+        const isValid = await Permission.isValidPermissionForUser(permission, req.user.role);
         if (isValid) {
           validPermissions.push(permission);
         } else {

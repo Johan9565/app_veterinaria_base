@@ -121,7 +121,7 @@ const createRole = async (req, res) => {
     // Verificar que todos los permisos existan
     if (permissions && permissions.length > 0) {
       for (const permission of permissions) {
-        const isValid = await Permission.isValidPermission(permission);
+        const isValid = await Permission.isValidPermissionForUser(permission, req.user.role);
         if (!isValid) {
           return res.status(400).json({
             success: false,
@@ -183,7 +183,7 @@ const updateRole = async (req, res) => {
     // Verificar que todos los permisos existan
     if (permissions && permissions.length > 0) {
       for (const permission of permissions) {
-        const isValid = await Permission.isValidPermission(permission);
+        const isValid = await Permission.isValidPermissionForUser(permission, req.user.role);
         if (!isValid) {
           return res.status(400).json({
             success: false,
@@ -331,7 +331,7 @@ const updateRolePermissions = async (req, res) => {
     // Verificar que todos los permisos existan
     if (permissions && permissions.length > 0) {
       for (const permission of permissions) {
-        const isValid = await Permission.isValidPermission(permission);
+        const isValid = await Permission.isValidPermissionForUser(permission, req.user.role);
         if (!isValid) {
           return res.status(400).json({
             success: false,

@@ -95,7 +95,7 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
 // Método para verificar permisos
 userSchema.methods.hasPermission = async function(permission) {
   // Verificar si el permiso existe en la base de datos
-  const permissionExists = await Permission.isValidPermission(permission);
+  const permissionExists = await Permission.isValidPermissionForUser(permission, this.role);
   if (!permissionExists) return false;
   
   // Verificar si el usuario tiene el permiso específico
@@ -106,7 +106,7 @@ userSchema.methods.hasPermission = async function(permission) {
 userSchema.methods.hasAnyPermission = async function(permissions) {
   // Verificar que todos los permisos existen en la base de datos
   for (const permission of permissions) {
-    const isValid = await Permission.isValidPermission(permission);
+    const isValid = await Permission.isValidPermissionForUser(permission, this.role);
     if (!isValid) return false;
   }
   
@@ -117,7 +117,7 @@ userSchema.methods.hasAnyPermission = async function(permissions) {
 userSchema.methods.hasAllPermissions = async function(permissions) {
   // Verificar que todos los permisos existen en la base de datos
   for (const permission of permissions) {
-    const isValid = await Permission.isValidPermission(permission);
+    const isValid = await Permission.isValidPermissionForUser(permission, this.role);
     if (!isValid) return false;
   }
   
@@ -134,9 +134,9 @@ userSchema.methods.toPublicJSON = function() {
 
 // Método estático para obtener permisos por rol
 userSchema.statics.getDefaultPermissions = async function(role) {
-  // Si el rol es 'admin', devolver todos los permisos disponibles
+  // Si el rol es 'admin', devolver todos los permisos disponibles (incluyendo inactivos)
   if (role === 'admin') {
-    const allPermissions = await Permission.find({ isActive: true }).distinct('name');
+    const allPermissions = await Permission.find({}).distinct('name');
     return allPermissions;
   }
   

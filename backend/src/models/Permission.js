@@ -83,8 +83,21 @@ permissionSchema.statics.getAllPermissionNames = async function() {
 
 // Método estático para validar si un permiso existe
 permissionSchema.statics.isValidPermission = async function(permissionName) {
-  const permission = await this.findOne({ name: permissionName, isActive: true });
+  const permission = await this.findOne({ name: permissionName, isActive: true});
   return !!permission;
+};
+
+// Método estático para validar si un permiso existe (incluyendo inactivos para admins)
+permissionSchema.statics.isValidPermissionForUser = async function(permissionName, userRole) {
+  if (userRole === 'admin') {
+    // Los admins pueden tener cualquier permiso, incluso los inactivos
+    const permission = await this.findOne({ name: permissionName });
+    return !!permission;
+  } else {
+    // Los usuarios normales solo pueden tener permisos activos
+    const permission = await this.findOne({ name: permissionName, isActive: true });
+    return !!permission;
+  }
 };
 
 // Método estático para obtener estadísticas
