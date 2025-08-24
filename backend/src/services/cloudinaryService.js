@@ -56,6 +56,11 @@ class CloudinaryService {
     return this.uploadImage(file, 'veterinarias/logos');
   }
 
+  // Subir imagen de mascota
+  async uploadPetImage(file) {
+    return this.uploadImage(file, 'pets');
+  }
+
   // Eliminar imagen de Cloudinary
   async deleteImage(publicId) {
     try {

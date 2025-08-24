@@ -28,7 +28,7 @@ const updateUserValidation = [
     .withMessage('El teléfono debe tener al menos 10 caracteres'),
   body('role')
     .optional()
-    .isIn(['cliente', 'veterinario', 'asistente', 'recepcionista'])
+    .isIn(['cliente', 'veterinario', 'asistente', 'recepcionista', 'owner'])
     .withMessage('Rol inválido'),
   body('isActive')
     .optional()
@@ -54,7 +54,7 @@ const createUserValidation = [
     .isLength({ min: 6 })
     .withMessage('La contraseña debe tener al menos 6 caracteres'),
   body('role')
-    .isIn(['cliente', 'veterinario', 'asistente', 'recepcionista'])
+    .isIn(['cliente', 'veterinario', 'asistente', 'recepcionista', 'owner'])
     .withMessage('Rol inválido'),
   body('owner_id')
     .optional()
@@ -64,6 +64,9 @@ const createUserValidation = [
 
 // GET /api/users - Obtener lista de usuarios (solo admin)
 router.get('/', authenticateToken, requirePermission('users.view'), userController.getAllUsers);
+
+// GET /api/users/clients - Obtener solo clientes y propietarios (accesible para todos los usuarios autenticados)
+router.get('/clients', authenticateToken, userController.getClients);
 
 // POST /api/users - Crear nuevo usuario (solo admin)
 router.post('/', authenticateToken, requirePermission('users.create'), createUserValidation, userController.createUser);

@@ -9,8 +9,8 @@ const Input = forwardRef(({
   rows = 3,
   ...props 
 }, ref) => {
-  const baseClasses = 'w-full px-3 py-2 border rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent';
-  const errorClasses = error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300';
+  const baseClasses = 'w-full px-3 py-2 border rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#81D4FA] focus:border-transparent';
+  const errorClasses = error ? 'border-red-500 focus:ring-red-500' : 'border-[#E2E8F0]';
   const classes = `${baseClasses} ${errorClasses} ${className}`;
   
   const Component = as;

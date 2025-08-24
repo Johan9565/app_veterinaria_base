@@ -1,4 +1,5 @@
 import React from 'react';
+import { colorClasses } from '../../styles/colors';
 
 const Button = ({ 
   children, 
@@ -12,11 +13,11 @@ const Button = ({
   const baseClasses = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
   
   const variants = {
-    primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
-    secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500',
-    outline: 'border-2 border-blue-600 text-blue-600 hover:bg-blue-50 focus:ring-blue-500',
+    primary: 'bg-[#4CAF50] text-white hover:bg-[#66BB6A] focus:ring-[#4CAF50]',
+    secondary: 'bg-[#81D4FA] text-white hover:bg-[#A3E0FF] focus:ring-[#81D4FA]',
+    outline: 'border-2 border-[#4CAF50] text-[#4CAF50] hover:bg-[#C8F0D8] focus:ring-[#4CAF50]',
     danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
-    success: 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500'
+    success: 'bg-[#4CAF50] text-white hover:bg-[#66BB6A] focus:ring-[#4CAF50]'
   };
   
   const sizes = {

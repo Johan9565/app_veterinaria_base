@@ -160,7 +160,7 @@ const RegisterPage = () => {
               <Select2
                 options={[
                   { value: 'cliente', label: 'Cliente' },
-                  { value: 'veterinario', label: 'Veterinario' }
+                  { value: 'owner', label: 'Dueño' }
                 ]}
                 value={formData.role}
                 onChange={(value) => setFormData(prev => ({ ...prev, role: value }))}

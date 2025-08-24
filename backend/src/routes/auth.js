@@ -26,7 +26,7 @@ const registerValidation = [
     .withMessage('La contraseña debe contener al menos una mayúscula, una minúscula y un número'),
   body('role')
     .optional()
-    .isIn(['cliente', 'veterinario'])
+    .isIn(['cliente', 'owner'])
     .withMessage('Rol inválido')
 ];
 

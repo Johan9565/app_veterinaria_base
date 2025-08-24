@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 
 const Select2 = ({ 
+  label,
   options = [], 
   value, 
   onChange, 
@@ -9,6 +10,7 @@ const Select2 = ({
   className = '',
   multiple = false,
   allowClear = true,
+  error,
   ...props 
 }) => {
   const selectRef = useRef(null);
@@ -91,7 +93,7 @@ const Select2 = ({
         }
       }
     };
-  }, [placeholder, allowClear, multiple, disabled]);
+  }, [placeholder, allowClear, multiple, disabled, options]); // Agregamos options como dependencia
 
   // Actualizar valor cuando cambie
   useEffect(() => {
@@ -99,6 +101,17 @@ const Select2 = ({
       try {
         const $select = select2Ref.current;
         const currentValue = $select.val();
+        
+        console.log('Select2 - Actualizando valor:', { currentValue, newValue: value, multiple, options: options.length });
+        
+        // Verificar que el valor existe en las opciones antes de establecerlo
+        if (value && value !== '') {
+          const valueExists = options.some(opt => opt.value === value);
+          if (!valueExists) {
+            console.warn('El valor no existe en las opciones:', value, 'Opciones disponibles:', options);
+            return;
+          }
+        }
         
         if (multiple) {
           const newValue = Array.isArray(value) ? value : [];
@@ -115,6 +128,25 @@ const Select2 = ({
       }
     }
   }, [value, multiple, options]);
+
+  // Forzar actualización cuando las opciones cambien
+  useEffect(() => {
+    if (select2Ref.current && window.jQuery && select2Ref.current.hasClass('select2-hidden-accessible')) {
+      try {
+        const $select = select2Ref.current;
+        
+        // Pequeño delay para asegurar que las opciones se hayan actualizado
+        setTimeout(() => {
+          if (value && value !== '') {
+            console.log('Forzando actualización de valor después de cambio de opciones:', value);
+            $select.val(value).trigger('change');
+          }
+        }, 50);
+      } catch (e) {
+        console.warn('Error forzando actualización Select2:', e);
+      }
+    }
+  }, [options, value]);
 
   // Actualizar opciones cuando cambien
   useEffect(() => {
@@ -166,24 +198,34 @@ const Select2 = ({
   }, [options, multiple, placeholder, value]);
 
   return (
-    <select
-      ref={selectRef}
-      className={`select2-custom ${className}`}
-      disabled={disabled}
-      multiple={multiple}
-      value={value || ''}
-      onChange={() => {}} // Handler vacío para evitar warning de React
-      {...props}
-    >
-      {!multiple && placeholder && (
-        <option value="">{placeholder}</option>
+    <div className="space-y-1">
+      {label && (
+        <label className="block text-sm font-medium text-gray-700">
+          {label}
+        </label>
       )}
-      {options.map((option, index) => (
-        <option key={index} value={option.value}>
-          {option.label || option.text}
-        </option>
-      ))}
-    </select>
+      <select
+        ref={selectRef}
+        className={`select2-custom ${className}`}
+        disabled={disabled}
+        multiple={multiple}
+        value={value || ''}
+        onChange={() => {}} // Handler vacío para evitar warning de React
+        {...props}
+      >
+        {!multiple && placeholder && (
+          <option value="">{placeholder}</option>
+        )}
+        {options.map((option, index) => (
+          <option key={index} value={option.value}>
+            {option.label || option.text}
+          </option>
+        ))}
+      </select>
+      {error && (
+        <p className="text-sm text-red-600">{error}</p>
+      )}
+    </div>
   );
 };
 

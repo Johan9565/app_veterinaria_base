@@ -20,8 +20,8 @@ const Navbar = () => {
 
   const getActiveClass = (path) => {
     return isActive(path) 
-      ? 'bg-blue-100 text-blue-700 border-blue-500' 
-      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 border-transparent';
+      ? 'bg-[#C8F0D8] text-[#4CAF50] border-[#4CAF50]' 
+      : 'text-gray-600 hover:bg-[#F5F5F5] hover:text-gray-900 border-transparent';
   };
 
   return (
@@ -31,7 +31,7 @@ const Navbar = () => {
           {/* Logo y navegación principal */}
           <div className="flex items-center space-x-8">
             <div className="flex items-center">
-              <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
+              <div className="h-8 w-8 bg-[#4CAF50] rounded-full flex items-center justify-center">
                 <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
@@ -112,8 +112,8 @@ const Navbar = () => {
               <Settings size={20} />
             </button>
             <div className="flex items-center space-x-3">
-              <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <User size={16} className="text-blue-600" />
+              <div className="h-8 w-8 bg-[#C8F0D8] rounded-full flex items-center justify-center">
+                <User size={16} className="text-[#4CAF50]" />
               </div>
               <span className="text-sm font-medium text-gray-700">{user?.name}</span>
               <Button

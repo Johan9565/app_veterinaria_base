@@ -6,6 +6,7 @@ import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import VeterinariesPage from './pages/VeterinariesPage';
+import PetsPage from './pages/PetsPage';
 import UsersManagementPage from './pages/admin/UsersManagementPage';
 import PermissionsPage from './pages/admin/PermissionsPage';
 import LogsPage from './pages/admin/LogsPage';
@@ -43,6 +44,16 @@ function App() {
               } 
             />
             
+            {/* Rutas de mascotas */}
+            <Route 
+              path="/pets" 
+              element={
+                <ProtectedRoute>
+                  <PetsPage />
+                </ProtectedRoute>
+              } 
+            />
+            
             {/* Rutas de administración */}
             <Route 
               path="/admin/users" 
@@ -76,6 +87,7 @@ function App() {
                 </ProtectedRoute>
               } 
             />
+            
             
             {/* Redirección por defecto */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />

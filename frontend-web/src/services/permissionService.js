@@ -102,6 +102,12 @@ export const userService = {
     return response.data; // El backend devuelve { users, pagination } directamente
   },
 
+  // Obtener solo clientes y propietarios
+  getClients: async (params = {}) => {
+    const response = await api.get('/users/clients', { params });
+    return response.data; // El backend devuelve { users, total } directamente
+  },
+
   // Obtener usuario específico
   getUser: async (userId) => {
     const response = await api.get(`/users/${userId}`);

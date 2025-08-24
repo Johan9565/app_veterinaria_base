@@ -506,6 +506,40 @@ const getUserStats = async (req, res) => {
   }
 };
 
+// GET /api/users/clients - Obtener solo clientes y propietarios
+const getClients = async (req, res) => {
+  try {
+    const { search } = req.query;
+    
+    // Construir filtros para obtener solo clientes y propietarios
+    const filters = {
+      role: { $in: ['cliente', 'owner'] },
+      isActive: true
+    };
+
+    if (search) {
+      filters.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const users = await User.find(filters)
+      .select('name email role')
+      .sort({ name: 1 });
+
+    res.json({
+      users,
+      total: users.length
+    });
+  } catch (error) {
+    console.error('Error obteniendo clientes:', error);
+    res.status(500).json({
+      message: 'Error interno del servidor'
+    });
+  }
+};
+
 module.exports = {
   getAllUsers,
   createUser,
@@ -514,5 +548,6 @@ module.exports = {
   deleteUser,
   updateUserPermissions,
   activateUser,
-  getUserStats
+  getUserStats,
+  getClients
 }; 
