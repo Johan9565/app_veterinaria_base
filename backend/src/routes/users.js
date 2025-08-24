@@ -89,4 +89,7 @@ router.put('/:id/activate', authenticateToken, requirePermission('users.edit'), 
 // GET /api/users/stats - Estadísticas de usuarios (solo admin)
 router.get('/stats/overview', authenticateToken, requirePermission('users.view'), userController.getUserStats);
 
+// GET /api/users/role/:role - Obtener usuarios por rol
+router.get('/role/:role', authenticateToken, userController.getUsersByRole);
+
 module.exports = router; 

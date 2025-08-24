@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { usePermissions } from './ProtectedRoute';
-import { LogOut, User, Settings, Bell, Users, Shield, Home, FileText, Building2 } from 'lucide-react';
+import { LogOut, User, Settings, Bell, Users, Shield, Home, FileText, Building2, Calendar } from 'lucide-react';
 import Button from './ui/Button';
 
 const Navbar = () => {
@@ -63,6 +63,8 @@ const Navbar = () => {
                   </div>
                 </Link>
               )}
+
+             
 
               {/* Enlaces de administración */}
               {(user?.role === 'admin' || hasPermission('users.view')) && (

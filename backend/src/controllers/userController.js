@@ -513,7 +513,7 @@ const getClients = async (req, res) => {
     
     // Construir filtros para obtener solo clientes y propietarios
     const filters = {
-      role: { $in: ['cliente', 'owner'] },
+      role: { $in: ['cliente'] },
       isActive: true
     };
 
@@ -540,6 +540,58 @@ const getClients = async (req, res) => {
   }
 };
 
+// GET /api/users/role/:role - Obtener usuarios por rol
+const getUsersByRole = async (req, res) => {
+  try {
+    const { role } = req.params;
+    const { search } = req.query;
+    
+    // Validar que el rol sea válido
+    const validRoles = ['cliente', 'veterinario', 'asistente', 'recepcionista', 'owner', 'admin'];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({
+        message: 'Rol inválido'
+      });
+    }
+
+    // Construir filtros
+    const filters = {
+      role: role,
+      isActive: true
+    };
+
+    if (search) {
+      filters.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    // Si no es admin, solo mostrar usuarios del propietario
+    if (req.user.role !== 'admin') {
+      if(req.user.role === 'owner'){
+        filters.owner_id = req.user._id;
+      }else{
+        filters._id = req.user._id;
+      }
+    }
+
+    const users = await User.find(filters)
+      .select('name email role')
+      .sort({ name: 1 });
+
+    res.json({
+      users,
+      total: users.length
+    });
+  } catch (error) {
+    console.error('Error obteniendo usuarios por rol:', error);
+    res.status(500).json({
+      message: 'Error interno del servidor'
+    });
+  }
+};
+
 module.exports = {
   getAllUsers,
   createUser,
@@ -549,5 +601,6 @@ module.exports = {
   updateUserPermissions,
   activateUser,
   getUserStats,
-  getClients
+  getClients,
+  getUsersByRole
 }; 

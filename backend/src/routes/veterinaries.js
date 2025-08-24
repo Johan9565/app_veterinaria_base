@@ -301,7 +301,7 @@ router.get('/nearby', veterinaryController.findNearbyVeterinaries);
 router.get('/service/:service', veterinaryController.findVeterinariesByService);
 
 // GET /api/veterinaries/user/:userId? - Obtener veterinarias del usuario
-router.get('/user/:userId?', authenticateToken, requirePermission('veterinaries.mine.view'), veterinaryController.getUserVeterinaries);
+router.get('/user/:userId?', authenticateToken, veterinaryController.getUserVeterinaries);
 
 // GET /api/veterinaries/:id - Obtener veterinaria específica (público)
 router.get('/:id', veterinaryController.getVeterinaryById);

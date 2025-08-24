@@ -34,7 +34,7 @@ const DashboardPage = () => {
                   <p className="text-gray-600 text-sm">Gestiona tu información personal</p>
                 </div>
                 
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-[#E2E8F0]">
+                <Link to="/appointments" className="bg-white p-6 rounded-lg shadow-sm border border-[#E2E8F0]">
                   <div className="h-12 w-12 bg-[#A3E0FF] rounded-lg flex items-center justify-center mb-4">
                     <svg className="h-6 w-6 text-[#81D4FA]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -42,7 +42,7 @@ const DashboardPage = () => {
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Citas</h3>
                   <p className="text-gray-600 text-sm">Programa y gestiona tus citas</p>
-                </div>
+                </Link>
                 
                 <Link to="/pets" className="bg-white p-6 rounded-lg shadow-sm border border-[#E2E8F0] hover:shadow-md transition-shadow cursor-pointer">
                   <div className="h-12 w-12 bg-[#A8E6CF] rounded-lg flex items-center justify-center mb-4">

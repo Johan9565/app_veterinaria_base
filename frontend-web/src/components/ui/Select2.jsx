@@ -93,7 +93,28 @@ const Select2 = ({
         }
       }
     };
-  }, [placeholder, allowClear, multiple, disabled, options]); // Agregamos options como dependencia
+  }, [placeholder, allowClear, multiple, disabled]); // Removemos options para evitar re-inicializaciones
+
+  // Actualizar opciones cuando cambien
+  useEffect(() => {
+    if (select2Ref.current && window.jQuery && select2Ref.current.hasClass('select2-hidden-accessible')) {
+      const $select = select2Ref.current;
+      
+      // Limpiar opciones existentes
+      $select.empty();
+      
+      // Agregar opciones
+      options.forEach(option => {
+        const optionElement = window.jQuery('<option></option>')
+          .val(option.value)
+          .text(option.label);
+        $select.append(optionElement);
+      });
+      
+      // Actualizar Select2
+      $select.trigger('change');
+    }
+  }, [options]);
 
   // Actualizar valor cuando cambie
   useEffect(() => {

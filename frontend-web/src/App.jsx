@@ -7,6 +7,7 @@ import RegisterPage from './pages/auth/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import VeterinariesPage from './pages/VeterinariesPage';
 import PetsPage from './pages/PetsPage';
+import AppointmentsPage from './pages/AppointmentsPage';
 import UsersManagementPage from './pages/admin/UsersManagementPage';
 import PermissionsPage from './pages/admin/PermissionsPage';
 import LogsPage from './pages/admin/LogsPage';
@@ -50,6 +51,16 @@ function App() {
               element={
                 <ProtectedRoute>
                   <PetsPage />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Rutas de citas */}
+            <Route 
+              path="/appointments" 
+              element={
+                <ProtectedRoute>
+                  <AppointmentsPage />
                 </ProtectedRoute>
               } 
             />
